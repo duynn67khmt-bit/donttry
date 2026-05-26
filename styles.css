@@ -2178,9 +2178,199 @@ button {
     font-weight: 600;
 }
 
+/* ==========================================
+   VISA / MASTERCARD DEPOSIT STYLING
+   ========================================== */
+.visa-deposit-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+    align-items: start;
+    padding: 10px 0;
+}
+
+.visa-card-container {
+    width: 220px;
+    height: 135px;
+    perspective: 1000px;
+    margin: 0 auto;
+}
+
+.visa-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.visa-card-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 14px;
+    box-sizing: border-box;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.visa-card-bg-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(245, 158, 11, 0.12) 0%, rgba(0,0,0,0) 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.visa-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1;
+}
+
+.visa-card-chip {
+    font-size: 1.4rem;
+    color: var(--gold);
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+    line-height: 1;
+}
+
+.visa-logo {
+    font-weight: 900;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text-light);
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.4);
+}
+
+.visa-card-number {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+    color: var(--text-light);
+    text-align: center;
+    margin: 12px 0 8px 0;
+    z-index: 1;
+    font-weight: bold;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.visa-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 1;
+}
+
+.visa-card-holder, .visa-card-expiry {
+    display: flex;
+    flex-direction: column;
+}
+
+.visa-card-label {
+    font-size: 0.45rem;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.visa-card-value {
+    font-size: 0.62rem;
+    color: var(--text-light);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.visa-form-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.deposit-row-flex {
+    display: flex;
+    gap: 12px;
+}
+
+.visa-quick-amounts {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.btn-quick-amount-visa {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 12px;
+    color: var(--text-light);
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    font-weight: 600;
+    flex: 1;
+    min-width: 60px;
+    text-align: center;
+}
+
+.btn-quick-amount-visa:hover {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: var(--gold);
+    color: var(--gold);
+    transform: translateY(-1px);
+}
+
+.visa-action-row {
+    margin-top: 4px;
+}
+
+.visa-deposit-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+.visa-deposit-status {
+    font-size: 0.72rem;
+    text-align: center;
+    margin-top: 6px;
+    font-weight: 600;
+    min-height: 18px;
+}
+
 @media(max-width: 580px) {
-    .bank-deposit-layout, .momo-deposit-layout {
+    .bank-deposit-layout, .momo-deposit-layout, .visa-deposit-layout {
         grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    .visa-card-container {
+        margin-bottom: 5px;
     }
 }
 

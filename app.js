@@ -391,6 +391,19 @@ class GameController {
         this.dom.depositHistoryList = document.getElementById('deposit-history-list');
         this.dom.bankDepositMemo = document.getElementById('bank-deposit-memo');
         this.dom.momoDepositMemo = document.getElementById('momo-deposit-memo');
+
+        // Visa Cached Elements
+        this.dom.visaCardNumInput = document.getElementById('visa-card-num-input');
+        this.dom.visaCardNameInput = document.getElementById('visa-card-name-input');
+        this.dom.visaCardExpiryInput = document.getElementById('visa-card-expiry-input');
+        this.dom.visaCardCvvInput = document.getElementById('visa-card-cvv-input');
+        this.dom.visaAmountInput = document.getElementById('visa-amount-input');
+        this.dom.btnVisaSubmit = document.getElementById('btn-visa-deposit-submit');
+        this.dom.visaLoading = document.getElementById('visa-deposit-loading');
+        this.dom.visaStatus = document.getElementById('visa-deposit-status');
+        this.dom.previewVisaNumber = document.getElementById('preview-visa-number');
+        this.dom.previewVisaName = document.getElementById('preview-visa-name');
+        this.dom.previewVisaExpiry = document.getElementById('preview-visa-expiry');
     }
 
     bindEvents() {
@@ -532,6 +545,61 @@ class GameController {
                 this.executeCardDeposit();
             });
         }
+
+        // Visa Events Binding
+        if (this.dom.visaCardNumInput) {
+            this.dom.visaCardNumInput.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                let formatted = val.match(/.{1,4}/g)?.join(' ') || '';
+                e.target.value = formatted;
+                this.dom.previewVisaNumber.textContent = formatted || '•••• •••• •••• ••••';
+            });
+        }
+
+        if (this.dom.visaCardNameInput) {
+            this.dom.visaCardNameInput.addEventListener('input', (e) => {
+                let val = e.target.value
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-zA-Z\s]/g, '')
+                    .toUpperCase();
+                e.target.value = val;
+                this.dom.previewVisaName.textContent = val || 'YOUR NAME';
+            });
+        }
+
+        if (this.dom.visaCardExpiryInput) {
+            this.dom.visaCardExpiryInput.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 2) {
+                    val = val.substring(0, 2) + '/' + val.substring(2, 4);
+                }
+                e.target.value = val;
+                this.dom.previewVisaExpiry.textContent = val || 'MM/YY';
+            });
+        }
+
+        if (this.dom.visaCardCvvInput) {
+            this.dom.visaCardCvvInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            });
+        }
+
+        // Quick amount buttons for Visa
+        document.querySelectorAll('.btn-quick-amount-visa').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (this.dom.visaAmountInput) {
+                    this.dom.visaAmountInput.value = btn.dataset.val;
+                    audioSynth.playChipSound();
+                }
+            });
+        });
+
+        if (this.dom.btnVisaSubmit) {
+            this.dom.btnVisaSubmit.addEventListener('click', () => {
+                this.executeVisaDeposit();
+            });
+        }
     }
 
     setupAudioTriggerOnFirstInteraction() {
@@ -623,6 +691,37 @@ class GameController {
         this.dom.cardLoading.classList.add('hidden');
         this.dom.btnCardSubmit.disabled = false;
 
+        // Load Visa card details
+        if (this.currentUser.visaCardNumber) {
+            this.dom.visaCardNumInput.value = this.currentUser.visaCardNumber;
+            this.dom.previewVisaNumber.textContent = this.currentUser.visaCardNumber;
+        } else {
+            this.dom.visaCardNumInput.value = '';
+            this.dom.previewVisaNumber.textContent = '•••• •••• •••• ••••';
+        }
+
+        if (this.currentUser.visaCardHolder) {
+            this.dom.visaCardNameInput.value = this.currentUser.visaCardHolder;
+            this.dom.previewVisaName.textContent = this.currentUser.visaCardHolder;
+        } else {
+            this.dom.visaCardNameInput.value = '';
+            this.dom.previewVisaName.textContent = 'YOUR NAME';
+        }
+
+        if (this.currentUser.visaCardExpiry) {
+            this.dom.visaCardExpiryInput.value = this.currentUser.visaCardExpiry;
+            this.dom.previewVisaExpiry.textContent = this.currentUser.visaCardExpiry;
+        } else {
+            this.dom.visaCardExpiryInput.value = '';
+            this.dom.previewVisaExpiry.textContent = 'MM/YY';
+        }
+
+        this.dom.visaCardCvvInput.value = ''; // Always clear CVV
+        this.dom.visaStatus.textContent = '';
+        this.dom.visaStatus.className = 'visa-deposit-status';
+        this.dom.visaLoading.classList.add('hidden');
+        this.dom.btnVisaSubmit.disabled = false;
+
         // Generate dynamic memo code for this transaction
         const memoStr = `ROYAL_${this.currentUser.username.toUpperCase()}_${Math.floor(Math.random() * 9000 + 1000)}`;
         if (this.dom.bankDepositMemo) this.dom.bankDepositMemo.textContent = memoStr;
@@ -712,6 +811,92 @@ class GameController {
             // Clear inputs
             this.dom.cardSerial.value = '';
             this.dom.cardPin.value = '';
+        }, 2000);
+    }
+
+    executeVisaDeposit() {
+        const cardNum = this.dom.visaCardNumInput.value.replace(/\s/g, '');
+        const cardHolder = this.dom.visaCardNameInput.value.trim();
+        const expiry = this.dom.visaCardExpiryInput.value.trim();
+        const cvv = this.dom.visaCardCvvInput.value.trim();
+        const amountVal = parseInt(this.dom.visaAmountInput.value, 10);
+
+        if (!cardNum || !cardHolder || !expiry || !cvv || isNaN(amountVal)) {
+            this.dom.visaStatus.textContent = 'Vui lòng nhập đầy đủ thông tin thẻ VISA và số tiền.';
+            this.dom.visaStatus.className = 'visa-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        if (cardNum.length !== 16) {
+            this.dom.visaStatus.textContent = 'Số thẻ VISA không hợp lệ (phải đủ 16 chữ số).';
+            this.dom.visaStatus.className = 'visa-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        if (cardHolder.length < 3) {
+            this.dom.visaStatus.textContent = 'Tên chủ thẻ không hợp lệ.';
+            this.dom.visaStatus.className = 'visa-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+            this.dom.visaStatus.textContent = 'Hạn dùng không đúng định dạng MM/YY.';
+            this.dom.visaStatus.className = 'visa-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        const [month, year] = expiry.split('/');
+        const m = parseInt(month, 10);
+        if (m < 1 || m > 12) {
+            this.dom.visaStatus.textContent = 'Tháng hết hạn không hợp lệ (01-12).';
+            this.dom.visaStatus.className = 'visa-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        if (cvv.length !== 3) {
+            this.dom.visaStatus.textContent = 'Mã CVV không hợp lệ (phải đúng 3 chữ số).';
+            this.dom.visaStatus.className = 'visa-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        if (amountVal < 10000) {
+            this.dom.visaStatus.textContent = 'Số tiền nạp tối thiểu là 10.000đ.';
+            this.dom.visaStatus.className = 'visa-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        // Processing state
+        this.dom.btnVisaSubmit.disabled = true;
+        this.dom.visaLoading.classList.remove('hidden');
+        this.dom.visaStatus.textContent = '';
+        audioSynth.playChipSound();
+
+        // 2 seconds simulated loading
+        setTimeout(() => {
+            this.dom.visaLoading.classList.add('hidden');
+            this.dom.btnVisaSubmit.disabled = false;
+
+            // Credit balance and record history
+            this.executeDeposit(amountVal, `VISA (đuôi ${cardNum.slice(-4)})`);
+
+            // Retain user card details for persistence (CVV is omitted for safety)
+            this.currentUser.visaCardNumber = this.dom.visaCardNumInput.value.trim();
+            this.currentUser.visaCardHolder = this.dom.visaCardNameInput.value.trim();
+            this.currentUser.visaCardExpiry = this.dom.visaCardExpiryInput.value.trim();
+            this.saveUsersToLocalStorage();
+
+            this.dom.visaStatus.textContent = `Thanh toán VISA thành công! Đã nạp +${this.formatCurrency(amountVal)}đ.`;
+            this.dom.visaStatus.className = 'visa-deposit-status text-cyan';
+
+            // Clear CVV
+            this.dom.visaCardCvvInput.value = '';
         }, 2000);
     }
 

@@ -440,6 +440,7 @@
                 <button class="deposit-tab-btn active-tab" data-tab="dep-tab-bank">NGÂN HÀNG</button>
                 <button class="deposit-tab-btn" data-tab="dep-tab-card">THẺ CÀO</button>
                 <button class="deposit-tab-btn" data-tab="dep-tab-momo">MOMO</button>
+                <button class="deposit-tab-btn" data-tab="dep-tab-visa">VISA/MASTER</button>
             </div>
             
             <div class="deposit-tab-content-wrapper">
@@ -568,6 +569,82 @@
                                     MÔ PHỎNG NẠP NHANH 50M <i class="fa-solid fa-bolt"></i>
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISA/MASTER TAB -->
+                <div id="dep-tab-visa" class="deposit-tab-pane">
+                    <div class="visa-deposit-layout">
+                        <!-- VISA 3D/GLASSMORPHIC CARD PREVIEW -->
+                        <div class="visa-card-container">
+                            <div class="visa-card-inner">
+                                <div class="visa-card-front">
+                                    <div class="visa-card-bg-glow"></div>
+                                    <div class="visa-card-header">
+                                        <span class="visa-card-chip"><i class="fa-solid fa-microchip"></i></span>
+                                        <span class="visa-logo">VISA</span>
+                                    </div>
+                                    <div class="visa-card-number" id="preview-visa-number">•••• •••• •••• ••••</div>
+                                    <div class="visa-card-footer">
+                                        <div class="visa-card-holder">
+                                            <div class="visa-card-label">CARD HOLDER</div>
+                                            <div class="visa-card-value" id="preview-visa-name">YOUR NAME</div>
+                                        </div>
+                                        <div class="visa-card-expiry">
+                                            <div class="visa-card-label">EXPIRES</div>
+                                            <div class="visa-card-value" id="preview-visa-expiry">MM/YY</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VISA FORM INPUTS -->
+                        <div class="visa-form-box">
+                            <div class="deposit-input-group">
+                                <label for="visa-card-num-input">Số Thẻ (16 chữ số):</label>
+                                <input type="text" id="visa-card-num-input" placeholder="4111 2222 3333 4444" autocomplete="off" maxlength="19">
+                            </div>
+                            <div class="deposit-input-group">
+                                <label for="visa-card-name-input">Tên Chủ Thẻ (Không dấu):</label>
+                                <input type="text" id="visa-card-name-input" placeholder="NGUYEN VAN A" autocomplete="off">
+                            </div>
+                            <div class="deposit-row-flex">
+                                <div class="deposit-input-group" style="flex: 1;">
+                                    <label for="visa-card-expiry-input">Hạn Dùng:</label>
+                                    <input type="text" id="visa-card-expiry-input" placeholder="MM/YY" autocomplete="off" maxlength="5">
+                                </div>
+                                <div class="deposit-input-group" style="flex: 1;">
+                                    <label for="visa-card-cvv-input">Mã CVV:</label>
+                                    <input type="password" id="visa-card-cvv-input" placeholder="•••" autocomplete="off" maxlength="3">
+                                </div>
+                            </div>
+                            <div class="deposit-input-group">
+                                <label for="visa-amount-input">Số Tiền Nạp (đ):</label>
+                                <input type="number" id="visa-amount-input" placeholder="Nhập số tiền..." autocomplete="off" min="10000" value="5000000">
+                            </div>
+                            
+                            <!-- Quick amount selection buttons -->
+                            <div class="visa-quick-amounts">
+                                <button type="button" class="btn-quick-amount-visa" data-val="1000000">1M</button>
+                                <button type="button" class="btn-quick-amount-visa" data-val="5000000">5M</button>
+                                <button type="button" class="btn-quick-amount-visa" data-val="10000000">10M</button>
+                                <button type="button" class="btn-quick-amount-visa" data-val="50000000">50M</button>
+                            </div>
+
+                            <div class="visa-action-row">
+                                <button id="btn-visa-deposit-submit" class="btn-primary">
+                                    XÁC NHẬN NẠP VISA <i class="fa-solid fa-shield-halved"></i>
+                                </button>
+                            </div>
+
+                            <!-- Spinner status -->
+                            <div id="visa-deposit-loading" class="visa-deposit-loading hidden">
+                                <div class="spinner"></div>
+                                <span>Đang liên kết với cổng thanh toán Visa/Mastercard...</span>
+                            </div>
+                            <div id="visa-deposit-status" class="visa-deposit-status"></div>
                         </div>
                     </div>
                 </div>
