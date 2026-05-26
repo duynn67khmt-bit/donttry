@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sòng Bạc Hoàng Gia - Tài Xỉu Premium</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Sound Synth & Audio Context Initializer Overlay (if needed by browser policies) -->
+    
+    <!-- LOGIN / REGISTER OVERLAY -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-container glass-panel">
+            <div class="auth-logo">
+                <i class="fa-solid fa-dice-d20 gold-glow"></i>
+                <h1>ROYAL CASINO</h1>
+                <p>TÀI XỈU PREMIUM</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form-wrapper" class="auth-form-wrapper">
+                <h2>ĐĂNG NHẬP</h2>
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="login-username" placeholder="Tên đăng nhập" required autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="Mật khẩu" required>
+                </div>
+                <div class="auth-error" id="login-error"></div>
+                <button id="btn-login" class="btn-primary">Đăng Nhập <i class="fa-solid fa-right-to-bracket"></i></button>
+                <p class="auth-switch">Chưa có tài khoản? <span id="switch-to-register">Đăng ký ngay</span></p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form-wrapper" class="auth-form-wrapper hidden">
+                <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" required autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required>
+                </div>
+                <div class="auth-error" id="register-error"></div>
+                <button id="btn-register" class="btn-primary">Tạo Tài Khoản <i class="fa-solid fa-user-plus"></i></button>
+                <p class="auth-switch">Đã có tài khoản? <span id="switch-to-login">Quay lại đăng nhập</span></p>
+            </div>
+
+            <!-- Quick Play / Demo Guide -->
+            <div class="demo-box">
+                <h3>Trải nghiệm nhanh với tài khoản Demo:</h3>
+                <div class="demo-credentials" id="demo-account-btn" title="Click để tự động nhập tài khoản Demo">
+                    <div>Tên: <strong class="gold-text">demo</strong></div>
+                    <div>Mật khẩu: <strong class="gold-text">123456</strong></div>
+                </div>
+                <p class="demo-tip">Click vào khung trên để tự động đăng nhập nhanh!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GAME PANEL -->
+    <div id="game-app" class="game-app hidden">
+        <!-- HEADER -->
+        <header class="game-header">
+            <div class="header-logo">
+                <i class="fa-solid fa-dice-d20 logo-icon gold-glow"></i>
+                <div class="logo-text">
+                    <span class="main-title">ROYAL CASINO</span>
+                    <span class="sub-title">TÀI XỈU 3D INTERACTIVE</span>
+                </div>
+            </div>
+
+            <div class="header-stats">
+                <div class="stat-item">
+                    <i class="fa-solid fa-users text-cyan"></i>
+                    <div class="stat-info">
+                        <span class="stat-label">Trực Tuyến</span>
+                        <span class="stat-value" id="online-counter">1,248</span>
+                    </div>
+                </div>
+                <div class="stat-item border-gold">
+                    <i class="fa-solid fa-wallet text-gold"></i>
+                    <div class="stat-info">
+                        <span class="stat-label">Số Dư Ví</span>
+                        <span class="stat-value text-gold font-digital" id="user-balance">0đ</span>
+                    </div>
+                    <button id="btn-open-deposit" class="deposit-header-btn" title="Nạp Tiền">
+                        <i class="fa-solid fa-circle-plus"></i> Nạp
+                    </button>
+                </div>
+            </div>
+
+            <div class="header-profile">
+                <div class="user-profile-info">
+                    <span class="profile-name" id="profile-display-name">Username</span>
+                    <span class="profile-role">Hội Viên Vip</span>
+                </div>
+                <button id="btn-sound-toggle" class="header-btn" title="Bật/Tắt âm thanh">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-gold"></i>
+                </button>
+                <button id="btn-logout" class="header-btn logout-btn" title="Đăng xuất">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT -->
+        <main class="game-main-content">
+            <!-- COLUMN LEFT: Dice Cup & Betting Board & Controls -->
+            <div class="column-left flex-column">
+                <!-- DICE TABLE CONTAINER -->
+                <div class="dice-table-card glass-panel">
+                    <div class="timer-ring-container">
+                        <svg class="timer-svg" viewBox="0 0 100 100">
+                            <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="timer-progress" id="timer-progress" cx="50" cy="50" r="45"></circle>
+                        </svg>
+                        <div class="timer-text font-digital" id="timer-number">20</div>
+                    </div>
+
+                    <div class="game-status-banner" id="game-status-banner">
+                        ĐANG ĐẶT CƯỢC...
+                    </div>
+
+                    <!-- 3D DICE TABLE AREA -->
+                    <div class="dice-table-wrapper">
+                        <div class="dice-plate" id="dice-plate">
+                            <!-- Cubes (Dice) container inside the plate -->
+                            <div class="dice-cubes-container">
+                                <!-- Dice 1 -->
+                                <div class="dice-cube-wrapper" id="dice-wrapper-1">
+                                    <div class="dice-cube" id="dice-1">
+                                        <div class="face front" data-value="1">
+                                            <span class="dot"></span>
+                                        </div>
+                                        <div class="face back" data-value="6">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                        </div>
+                                        <div class="face right" data-value="3">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span>
+                                        </div>
+                                        <div class="face left" data-value="4">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                        </div>
+                                        <div class="face top" data-value="5">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span>
+                                        </div>
+                                        <div class="face bottom" data-value="2">
+                                            <span class="dot"></span><span class="dot"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dice 2 -->
+                                <div class="dice-cube-wrapper" id="dice-wrapper-2">
+                                    <div class="dice-cube" id="dice-2">
+                                        <div class="face front" data-value="1">
+                                            <span class="dot"></span>
+                                        </div>
+                                        <div class="face back" data-value="6">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                        </div>
+                                        <div class="face right" data-value="3">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span>
+                                        </div>
+                                        <div class="face left" data-value="4">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                        </div>
+                                        <div class="face top" data-value="5">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span>
+                                        </div>
+                                        <div class="face bottom" data-value="2">
+                                            <span class="dot"></span><span class="dot"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dice 3 -->
+                                <div class="dice-cube-wrapper" id="dice-wrapper-3">
+                                    <div class="dice-cube" id="dice-3">
+                                        <div class="face front" data-value="1">
+                                            <span class="dot"></span>
+                                        </div>
+                                        <div class="face back" data-value="6">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                        </div>
+                                        <div class="face right" data-value="3">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span>
+                                        </div>
+                                        <div class="face left" data-value="4">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                        </div>
+                                        <div class="face top" data-value="5">
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span><span class="dot"></span>
+                                            <span class="dot"></span>
+                                        </div>
+                                        <div class="face bottom" data-value="2">
+                                            <span class="dot"></span><span class="dot"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dice Cup (Bát) -->
+                            <div class="dice-cup" id="dice-cup">
+                                <div class="cup-knob"></div>
+                                <div class="cup-body">
+                                    <div class="cup-pattern-ring">
+                                        <i class="fa-solid fa-dragon"></i>
+                                    </div>
+                                </div>
+                                <div class="cup-rim"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RECENT RESULT HISTORY STRIP -->
+                    <div class="history-dots-strip" id="history-strip">
+                        <!-- Filled by JS: latest 10 results -->
+                    </div>
+                </div>
+
+                <!-- BETTING BOARD -->
+                <div class="betting-board glass-panel">
+                    <!-- MAIN BET AREAS: TÀI vs XỈU -->
+                    <div class="bet-areas-wrapper">
+                        <!-- BET XỈU (SMALL) -->
+                        <div class="bet-area-card bet-xiu" id="bet-area-xiu" data-type="xiu">
+                            <div class="bet-label-wrapper">
+                                <span class="bet-title">XỈU</span>
+                                <span class="bet-subtitle">SMALL</span>
+                                <span class="bet-numbers">4 - 10</span>
+                                <span class="bet-multiplier">1 Ăn 1</span>
+                            </div>
+                            <!-- Bets indicator -->
+                            <div class="bet-statistics">
+                                <div class="bet-total font-digital" id="total-bet-xiu">0đ</div>
+                                <div class="bet-users-count" id="users-count-xiu">0 người đặt</div>
+                            </div>
+                            <!-- User's own bet on this area -->
+                            <div class="user-bet-indicator hidden" id="user-bet-indicator-xiu">
+                                Đã Cược: <span class="user-bet-val" id="user-bet-val-xiu">0đ</span>
+                            </div>
+                            <!-- Chips container to contain placed animated chips -->
+                            <div class="chips-container-grid" id="chips-grid-xiu"></div>
+                        </div>
+
+                        <!-- MIDDLE: SPECIFIC TRIPLE (CƯỢC BÃO) -->
+                        <div class="bet-area-card bet-bao" id="bet-area-bao" data-type="bao">
+                            <div class="bet-label-wrapper">
+                                <span class="bet-title-small">CƯỢC BÃO</span>
+                                <span class="bet-subtitle">ANY TRIPLE</span>
+                                <span class="bet-description">3 xúc xắc giống nhau</span>
+                                <span class="bet-multiplier-bao">1 Ăn 30</span>
+                            </div>
+                            <div class="bet-statistics">
+                                <div class="bet-total font-digital text-gold" id="total-bet-bao">0đ</div>
+                            </div>
+                            <div class="user-bet-indicator hidden" id="user-bet-indicator-bao">
+                                Cược: <span class="user-bet-val" id="user-bet-val-bao">0đ</span>
+                            </div>
+                            <div class="chips-container-grid" id="chips-grid-bao"></div>
+                        </div>
+
+                        <!-- BET TÀI (BIG) -->
+                        <div class="bet-area-card bet-tai" id="bet-area-tai" data-type="tai">
+                            <div class="bet-label-wrapper">
+                                <span class="bet-title">TÀI</span>
+                                <span class="bet-subtitle">BIG</span>
+                                <span class="bet-numbers">11 - 17</span>
+                                <span class="bet-multiplier">1 Ăn 1</span>
+                            </div>
+                            <div class="bet-statistics">
+                                <div class="bet-total font-digital" id="total-bet-tai">0đ</div>
+                                <div class="bet-users-count" id="users-count-tai">0 người đặt</div>
+                            </div>
+                            <div class="user-bet-indicator hidden" id="user-bet-indicator-tai">
+                                Đã Cược: <span class="user-bet-val" id="user-bet-val-tai">0đ</span>
+                            </div>
+                            <div class="chips-container-grid" id="chips-grid-tai"></div>
+                        </div>
+                    </div>
+
+                    <!-- CHIPS SELECTOR BAR -->
+                    <div class="chips-selector-section">
+                        <div class="section-title">CHỌN MỆNH GIÁ PHỈNH CƯỢC</div>
+                        <div class="chips-tray">
+                            <button class="chip active-chip" data-value="10000" style="--chip-color: #6366f1;">
+                                <div class="chip-inner"><span>10K</span></div>
+                            </button>
+                            <button class="chip" data-value="50000" style="--chip-color: #06b6d4;">
+                                <div class="chip-inner"><span>50K</span></div>
+                            </button>
+                            <button class="chip" data-value="100000" style="--chip-color: #10b981;">
+                                <div class="chip-inner"><span>100K</span></div>
+                            </button>
+                            <button class="chip" data-value="500000" style="--chip-color: #f59e0b;">
+                                <div class="chip-inner"><span>500K</span></div>
+                            </button>
+                            <button class="chip" data-value="1000000" style="--chip-color: #ec4899;">
+                                <div class="chip-inner"><span>1M</span></div>
+                            </button>
+                            <button class="chip" data-value="5000000" style="--chip-color: #ef4444;">
+                                <div class="chip-inner"><span>5M</span></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- BET ACTION BUTTONS -->
+                    <div class="bet-actions-container">
+                        <button id="btn-bet-clear" class="btn-action btn-clear" disabled>
+                            <i class="fa-solid fa-trash-can"></i> Hủy Cược
+                        </button>
+                        <button id="btn-bet-double" class="btn-action btn-double" disabled>
+                            <i class="fa-solid fa-angles-up"></i> Gấp Đôi
+                        </button>
+                        <button id="btn-bet-allin" class="btn-action btn-allin">
+                            <i class="fa-solid fa-fire"></i> Tất Tay (All-In)
+                        </button>
+                        <button id="btn-bet-confirm" class="btn-primary btn-confirm-bet" disabled>
+                            <i class="fa-solid fa-check-double"></i> XÁC NHẬN ĐẶT CƯỢC
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMN RIGHT: Statistics (Cầu) & Live Chat -->
+            <div class="column-right flex-column">
+                <!-- STATS & SOI CẦU CARD -->
+                <div class="soi-cau-card glass-panel flex-column">
+                    <div class="card-tabs">
+                        <button class="tab-btn active-tab" data-tab="tab-bead-plate">BẢNG VỊ (CẦU TRÒN)</button>
+                        <button class="tab-btn" data-tab="tab-trend-line">CẦU DÂY (SVG)</button>
+                    </div>
+
+                    <div class="tab-content-wrapper">
+                        <!-- Bead Plate Grid Tab -->
+                        <div id="tab-bead-plate" class="tab-pane active-pane">
+                            <div class="bead-plate-grid" id="bead-plate-container">
+                                <!-- Filled by JS: 6 rows, 14 columns of bead items -->
+                            </div>
+                        </div>
+
+                        <!-- Trend Line (SVG) Tab -->
+                        <div id="tab-trend-line" class="tab-pane">
+                            <div class="trend-line-container">
+                                <svg class="trend-svg" id="trend-svg" viewBox="0 0 450 150">
+                                    <!-- Dynamic lines and circles will be injected here -->
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick statistics progress indicators -->
+                    <div class="stats-summary-footer">
+                        <div class="progress-stats-row">
+                            <span class="label">XỈU (<span id="txt-percent-xiu">50</span>%)</span>
+                            <div class="stat-progress-bar">
+                                <div class="progress-fill fill-xiu" id="bar-percent-xiu" style="width: 50%;"></div>
+                                <div class="progress-fill fill-tai" id="bar-percent-tai" style="width: 50%;"></div>
+                            </div>
+                            <span class="label">TÀI (<span id="txt-percent-tai">50</span>%)</span>
+                        </div>
+                        <div class="stats-mini-info">
+                            <span>Ván đấu: <strong id="total-rounds-count">0</strong></span>
+                            <span>Bão (Hòa): <strong id="total-baos-count">0</strong></span>
+                            <span>Cầu dài nhất: <strong id="longest-streak">0</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE CHAT SIMULATOR CARD -->
+                <div class="chat-card glass-panel flex-column">
+                    <div class="card-header">
+                        <div class="title-with-status">
+                            <i class="fa-solid fa-comments text-gold"></i>
+                            <span>SẢNH CHAT TRỰC TUYẾN</span>
+                        </div>
+                        <span class="online-pill"><span class="pulse-dot"></span> Đang kết nối</span>
+                    </div>
+
+                    <!-- Messages list -->
+                    <div class="chat-messages-container" id="chat-messages">
+                        <!-- Injected by JS: Bot and User messages -->
+                    </div>
+
+                    <!-- Chat input form -->
+                    <form class="chat-input-form" id="chat-form">
+                        <input type="text" id="chat-input-msg" placeholder="Nhập tin nhắn..." autocomplete="off">
+                        <button type="submit" class="btn-chat-send" id="btn-chat-send">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- DEPOSIT MODAL -->
+    <div id="deposit-modal" class="deposit-modal hidden">
+        <div class="deposit-container glass-panel">
+            <div class="deposit-modal-header">
+                <h2><i class="fa-solid fa-wallet text-gold"></i> NẠP TIỀN TÀI KHOẢN</h2>
+                <button id="btn-close-deposit" class="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="deposit-tabs">
+                <button class="deposit-tab-btn active-tab" data-tab="dep-tab-bank">NGÂN HÀNG</button>
+                <button class="deposit-tab-btn" data-tab="dep-tab-card">THẺ CÀO</button>
+                <button class="deposit-tab-btn" data-tab="dep-tab-momo">MOMO</button>
+            </div>
+            
+            <div class="deposit-tab-content-wrapper">
+                <!-- BANK TRANSFER TAB -->
+                <div id="dep-tab-bank" class="deposit-tab-pane active-pane">
+                    <div class="bank-deposit-layout">
+                        <div class="qr-code-box">
+                            <div class="mock-qr-graphic">
+                                <div class="qr-corner top-left"></div>
+                                <div class="qr-corner top-right"></div>
+                                <div class="qr-corner bottom-left"></div>
+                                <div class="qr-center-logo">Techcombank</div>
+                                <div class="qr-lines"></div>
+                            </div>
+                            <span class="qr-label">Quét mã QR để chuyển khoản nhanh</span>
+                        </div>
+                        
+                        <div class="bank-details-box">
+                            <div class="detail-row">
+                                <span class="label">Ngân Hàng:</span>
+                                <span class="val font-digital text-gold">Techcombank</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Chủ Tài Khoản:</span>
+                                <span class="val">ROYAL CASINO</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Số Tài Khoản:</span>
+                                <span class="val font-digital">9999 8888 6666</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Nội Dung chuyển:</span>
+                                <span class="val font-digital text-cyan" id="bank-deposit-memo">NAP_DEMO</span>
+                            </div>
+                            
+                            <div class="quick-deposit-helper">
+                                <p>Nhấp nút dưới đây để mô phỏng chuyển khoản thành công lập tức:</p>
+                                <button id="btn-quick-deposit-100m" class="btn-primary btn-quick-dep">
+                                    MÔ PHỎNG NẠP NHANH 100M <i class="fa-solid fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SCRATCH CARD TAB -->
+                <div id="dep-tab-card" class="deposit-tab-pane">
+                    <div class="card-deposit-layout">
+                        <div class="deposit-input-group">
+                            <label>Chọn Nhà Mạng:</label>
+                            <select id="card-carrier">
+                                <option value="viettel">Viettel (Phí 0%)</option>
+                                <option value="mobifone">Mobifone (Phí 0%)</option>
+                                <option value="vinaphone">Vinaphone (Phí 0%)</option>
+                            </select>
+                        </div>
+                        <div class="deposit-input-group">
+                            <label>Mệnh Giá Thẻ:</label>
+                            <select id="card-amount">
+                                <option value="50000">50,000đ</option>
+                                <option value="100000">100,000đ</option>
+                                <option value="200000">200,000đ</option>
+                                <option value="500000" selected>500,000đ</option>
+                                <option value="1000000">1,000,000đ</option>
+                            </select>
+                        </div>
+                        <div class="deposit-input-group">
+                            <label>Số Seri:</label>
+                            <input type="text" id="card-serial" placeholder="Nhập số seri..." autocomplete="off">
+                        </div>
+                        <div class="deposit-input-group">
+                            <label>Mã Thẻ (Pin):</label>
+                            <input type="text" id="card-pin" placeholder="Nhập mã thẻ..." autocomplete="off">
+                        </div>
+                        
+                        <div class="card-action-row">
+                            <button id="btn-card-deposit-submit" class="btn-primary">
+                                XÁC NHẬN NẠP THẺ <i class="fa-solid fa-circle-check"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Loading spinner/status for card top up -->
+                        <div id="card-deposit-loading" class="card-deposit-loading hidden">
+                            <div class="spinner"></div>
+                            <span>Đang kiểm tra thẻ trên hệ thống...</span>
+                        </div>
+                        <div id="card-deposit-status" class="card-deposit-status"></div>
+                    </div>
+                </div>
+                
+                <!-- MOMO TAB -->
+                <div id="dep-tab-momo" class="deposit-tab-pane">
+                    <div class="momo-deposit-layout">
+                        <div class="qr-code-box">
+                            <div class="mock-qr-graphic momo-qr">
+                                <div class="qr-corner top-left" style="border-color: #ec4899;"></div>
+                                <div class="qr-corner top-right" style="border-color: #ec4899;"></div>
+                                <div class="qr-corner bottom-left" style="border-color: #ec4899;"></div>
+                                <div class="qr-center-logo momo-logo">MoMo</div>
+                                <div class="qr-lines"></div>
+                            </div>
+                            <span class="qr-label">Quét mã QR MoMo để chuyển khoản</span>
+                        </div>
+                        
+                        <div class="momo-details-box">
+                            <div class="detail-row">
+                                <span class="label">Ví Điện Tử:</span>
+                                <span class="val text-pink font-digital">MoMo</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Số Điện Thoại:</span>
+                                <span class="val font-digital">0999 888 777</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Tên Người Nhận:</span>
+                                <span class="val">ROYAL CASINO</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Nội Dung:</span>
+                                <span class="val font-digital text-cyan" id="momo-deposit-memo">NAP_DEMO</span>
+                            </div>
+                            
+                            <div class="quick-deposit-helper">
+                                <p>Nhấp nút dưới đây để mô phỏng cược Momo thành công:</p>
+                                <button id="btn-quick-deposit-50m" class="btn-primary btn-quick-dep" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); box-shadow: 0 4px 15px rgba(236,72,153,0.3);">
+                                    MÔ PHỎNG NẠP NHANH 50M <i class="fa-solid fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- DEPOSIT HISTORY LOGS -->
+            <div class="deposit-history-section">
+                <h3>NHẬT KÝ NẠP TIỀN GẦN ĐÂY</h3>
+                <div class="deposit-history-list" id="deposit-history-list">
+                    <p class="no-history-text">Chưa có lịch sử giao dịch nạp tiền.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Web Audio Permission / Init Banner (displayed overlay for first click) -->
+    <div id="audio-init-overlay" class="audio-init-overlay hidden">
+        <div class="audio-init-box glass-panel">
+            <i class="fa-solid fa-music music-bounce"></i>
+            <h2>Kích hoạt âm thanh trò chơi?</h2>
+            <p>Trò chơi có hiệu ứng âm thanh 3D, nhạc nền và tiếng lắc xúc xắc sinh động. Vui lòng nhấn nút dưới đây để cấp quyền phát âm thanh.</p>
+            <div class="audio-btn-row">
+                <button id="btn-audio-enable" class="btn-primary">Kích Hoạt Âm Thanh <i class="fa-solid fa-volume-high"></i></button>
+                <button id="btn-audio-skip" class="btn-secondary">Để Sau</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
