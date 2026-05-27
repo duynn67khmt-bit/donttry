@@ -252,13 +252,20 @@ class GameController {
         this.activeUsername = localStorage.getItem('tx_active_user') || null;
         this.currentUser = null;
 
-        // Stage configurations: 'BETTING' (30s) -> 'SHAKING' (3s) -> 'BOWL_REVEAL' (click) -> 'REVEALING' (2s) -> 'PAYOUT' (4s) -> 'REST' (20s)
+        // Stage configurations: 'BETTING' (30s) -> 'SHAKING' (3s) -> 'BOWL_REVEAL' (drag) -> 'REVEALING' (2s) -> 'PAYOUT' (4s) -> 'REST' (20s)
         this.gameStage = 'BETTING'; 
         this.timer = 30;
         this.timerInterval = null;
         this.bowlRevealTimeout = null;
         this.botInterval = null;
         this.chatInterval = null;
+
+        // Bowl drag state
+        this.isDraggingBowl = false;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
+        this.dragOffsetX = 0;
+        this.dragOffsetY = 0;
 
         // Current round states
         this.currentDice = [1, 1, 1];
@@ -324,7 +331,7 @@ class GameController {
         this.dom.dice2 = document.getElementById('dice-2');
         this.dom.dice3 = document.getElementById('dice-3');
         this.dom.historyStrip = document.getElementById('history-strip');
-        this.dom.bowlPeekPrompt = document.getElementById('bowl-peek-prompt');
+        this.dom.bowlPeekHint = document.getElementById('bowl-peek-hint');
         this.dom.restOverlay = document.getElementById('rest-overlay');
 
         // Betting Board
@@ -456,12 +463,10 @@ class GameController {
         this.dom.betTai.addEventListener('click', () => this.placeUserBet('tai'));
         this.dom.betBao.addEventListener('click', () => this.placeUserBet('bao'));
 
-        // Bowl Peek (Kéo Bát) click listener
-        this.dom.bowlPeekPrompt.addEventListener('click', () => {
-            if (this.gameStage === 'BOWL_REVEAL') {
-                this.setGameStage('REVEALING');
-            }
-        });
+        // Bowl Drag (Kéo Bát) - Pointer events for free-drag reveal
+        this.dom.diceCup.addEventListener('pointerdown', (e) => this.onBowlDragStart(e));
+        document.addEventListener('pointermove', (e) => this.onBowlDragMove(e));
+        document.addEventListener('pointerup', (e) => this.onBowlDragEnd(e));
 
         // Bet controls
         this.dom.btnBetClear.addEventListener('click', () => this.clearUserBets());
@@ -1080,14 +1085,14 @@ class GameController {
                 this.dom.statusBanner.innerHTML = '<span class="pulse-dot"></span> ĐANG ĐẶT CƯỢC...';
                 this.dom.statusBanner.className = 'game-status-banner text-gold';
                 
-                // Set dice cup state (down, hiding dice)
-                this.dom.diceCup.classList.remove('lift-up', 'slide-reveal', 'shake-animation');
-                this.dom.diceCup.style.animation = 'none';
-                void this.dom.diceCup.offsetHeight;
-                this.dom.diceCup.style.animation = '';
+                // Reset dice cup state fully
+                this.dom.diceCup.classList.remove('lift-up', 'shake-animation', 'draggable', 'dragging', 'dragged-away');
+                this.dom.diceCup.style.transform = '';
+                this.dom.diceCup.style.opacity = '';
+                this.isDraggingBowl = false;
 
-                // Hide overlays
-                this.dom.bowlPeekPrompt.classList.remove('visible');
+                // Hide overlays/hints
+                this.dom.bowlPeekHint.classList.remove('visible');
                 this.dom.restOverlay.classList.remove('visible');
 
                 // Clear bets counters
@@ -1111,9 +1116,12 @@ class GameController {
                 
                 this.enableBettingControls(false);
 
-                // Hide overlays
-                this.dom.bowlPeekPrompt.classList.remove('visible');
+                // Hide hints & reset drag state
+                this.dom.bowlPeekHint.classList.remove('visible');
                 this.dom.restOverlay.classList.remove('visible');
+                this.dom.diceCup.classList.remove('draggable', 'dragging', 'dragged-away');
+                this.dom.diceCup.style.transform = '';
+                this.dom.diceCup.style.opacity = '';
 
                 // Add shake classes and play sound
                 this.dom.diceCup.classList.add('shake-animation');
@@ -1124,22 +1132,23 @@ class GameController {
                 break;
 
             case 'BOWL_REVEAL':
-                // Pause the timer - wait for user click to reveal
+                // Pause the timer - wait for user to drag the bowl
                 this.timer = 0;
                 this.updateTimerUI();
-                this.dom.statusBanner.innerHTML = '<span class="text-gold">👆 NHẤN ĐỂ KÉO BÁT SOI</span>';
+                this.dom.statusBanner.innerHTML = '<span class="text-gold">🖐️ KÉO BÁT ĐỂ SOI XÚC XẮC</span>';
                 this.dom.statusBanner.className = 'game-status-banner text-gold';
 
                 // Core Algorithm: Generate dice rolls NOW (before user peeks)
                 this.rollDiceAlgorithm();
 
-                // Stop shake animation
+                // Stop shake, make cup draggable
                 this.dom.diceCup.classList.remove('shake-animation');
+                this.dom.diceCup.classList.add('draggable');
 
-                // Show the peek prompt overlay
-                this.dom.bowlPeekPrompt.classList.add('visible');
+                // Show drag hint on the cup
+                this.dom.bowlPeekHint.classList.add('visible');
 
-                // Auto-advance fallback after 10 seconds if user doesn't click
+                // Auto-advance fallback after 10 seconds if user doesn't drag
                 this.bowlRevealTimeout = setTimeout(() => {
                     if (this.gameStage === 'BOWL_REVEAL') {
                         this.setGameStage('REVEALING');
@@ -1153,23 +1162,22 @@ class GameController {
                 this.dom.statusBanner.textContent = 'MỞ BÁT KẾT QUẢ!';
                 this.dom.statusBanner.className = 'game-status-banner text-gold';
 
-                // Clear auto-reveal timeout (user may have clicked manually)
+                // Clear auto-reveal timeout
                 if (this.bowlRevealTimeout) {
                     clearTimeout(this.bowlRevealTimeout);
                     this.bowlRevealTimeout = null;
                 }
 
-                // Hide peek prompt
-                this.dom.bowlPeekPrompt.classList.remove('visible');
+                // Hide drag hint
+                this.dom.bowlPeekHint.classList.remove('visible');
 
                 // CSS 3D Rotations transition trigger (dice already rolled in BOWL_REVEAL)
                 this.apply3DDiceTransitions();
                 
-                // Slide the cup sideways (kéo bát effect)
-                setTimeout(() => {
-                    this.dom.diceCup.classList.add('slide-reveal');
-                    audioSynth.playCupLiftSound();
-                }, 200);
+                // Mark cup as dragged away (fade out at current drag position)
+                this.dom.diceCup.classList.remove('draggable', 'dragging');
+                this.dom.diceCup.classList.add('dragged-away');
+                audioSynth.playCupLiftSound();
                 break;
 
             case 'PAYOUT':
@@ -1211,11 +1219,9 @@ class GameController {
                 this.dom.statusBanner.className = 'game-status-banner text-muted';
 
                 // Reset cup position for next round
-                this.dom.diceCup.classList.remove('lift-up', 'slide-reveal');
-                this.dom.diceCup.style.animation = 'none';
-                // Force reflow then remove inline animation override
-                void this.dom.diceCup.offsetHeight;
-                this.dom.diceCup.style.animation = '';
+                this.dom.diceCup.classList.remove('lift-up', 'draggable', 'dragging', 'dragged-away');
+                this.dom.diceCup.style.transform = '';
+                this.dom.diceCup.style.opacity = '';
 
                 // Show rest overlay on the plate
                 this.dom.restOverlay.classList.add('visible');
@@ -1234,7 +1240,7 @@ class GameController {
         } else if (this.gameStage === 'SHAKING') {
             this.setGameStage('BOWL_REVEAL');
         } else if (this.gameStage === 'BOWL_REVEAL') {
-            // This should not be called by timer - BOWL_REVEAL advances via user click
+            // This should not be called by timer - BOWL_REVEAL advances via user drag
             this.setGameStage('REVEALING');
         } else if (this.gameStage === 'REVEALING') {
             this.setGameStage('PAYOUT');
@@ -1282,6 +1288,87 @@ class GameController {
             this.dom.timerNumber.classList.remove('text-red');
         } else {
             this.dom.timerProgress.style.stroke = 'var(--success)';
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    // 5b. BOWL DRAG HANDLERS (KÉO BÁT)
+    // --------------------------------------------------------------------------
+    onBowlDragStart(e) {
+        if (this.gameStage !== 'BOWL_REVEAL') return;
+        
+        e.preventDefault();
+        this.isDraggingBowl = true;
+        this.dragStartX = e.clientX;
+        this.dragStartY = e.clientY;
+        this.dragOffsetX = 0;
+        this.dragOffsetY = 0;
+
+        this.dom.diceCup.classList.add('dragging');
+        this.dom.diceCup.setPointerCapture(e.pointerId);
+
+        // Hide hint once user starts dragging
+        this.dom.bowlPeekHint.classList.remove('visible');
+    }
+
+    onBowlDragMove(e) {
+        if (!this.isDraggingBowl) return;
+        
+        e.preventDefault();
+        this.dragOffsetX = e.clientX - this.dragStartX;
+        this.dragOffsetY = e.clientY - this.dragStartY;
+
+        // Calculate distance from start
+        const distance = Math.sqrt(this.dragOffsetX ** 2 + this.dragOffsetY ** 2);
+
+        // Calculate rotation angle based on drag direction (subtle tilt)
+        const angle = Math.atan2(this.dragOffsetY, this.dragOffsetX);
+        const tiltDeg = Math.min(distance * 0.15, 25);
+
+        // Dynamic opacity: fades as cup is dragged further
+        const opacity = Math.max(0.1, 1 - distance / 150);
+
+        // Apply transform: translate + rotate based on drag direction
+        this.dom.diceCup.style.transform = `translate(${this.dragOffsetX}px, ${this.dragOffsetY}px) rotate(${tiltDeg * Math.sign(this.dragOffsetX)}deg)`;
+        this.dom.diceCup.style.opacity = opacity;
+
+        // Update status text based on drag distance
+        if (distance > 50) {
+            this.dom.statusBanner.innerHTML = '<span class="text-gold">🔥 THẢ ĐỂ MỞ BÁT!</span>';
+        }
+    }
+
+    onBowlDragEnd(e) {
+        if (!this.isDraggingBowl) return;
+        
+        this.isDraggingBowl = false;
+        this.dom.diceCup.classList.remove('dragging');
+
+        // Calculate total distance dragged
+        const distance = Math.sqrt(this.dragOffsetX ** 2 + this.dragOffsetY ** 2);
+
+        // Threshold: 80px from center to reveal
+        if (distance >= 80) {
+            // Success! Reveal the dice - cup stays at dragged position
+            this.setGameStage('REVEALING');
+        } else {
+            // Snap back to center with smooth transition
+            this.dom.diceCup.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease';
+            this.dom.diceCup.style.transform = '';
+            this.dom.diceCup.style.opacity = '';
+            
+            // Re-show the hint
+            this.dom.bowlPeekHint.classList.add('visible');
+
+            // Re-update status
+            this.dom.statusBanner.innerHTML = '<span class="text-gold">🖐️ KÉO BÁT ĐỂ SOI XÚC XẮC</span>';
+
+            // Remove transition after snap-back completes
+            setTimeout(() => {
+                if (this.gameStage === 'BOWL_REVEAL') {
+                    this.dom.diceCup.style.transition = '';
+                }
+            }, 400);
         }
     }
 
