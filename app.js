@@ -414,6 +414,19 @@ class GameController {
         this.dom.previewVisaNumber = document.getElementById('preview-visa-number');
         this.dom.previewVisaName = document.getElementById('preview-visa-name');
         this.dom.previewVisaExpiry = document.getElementById('preview-visa-expiry');
+
+        // Withdraw Cached Elements
+        this.dom.btnOpenWithdraw = document.getElementById('btn-open-withdraw');
+        this.dom.withdrawModal = document.getElementById('withdraw-modal');
+        this.dom.btnCloseWithdraw = document.getElementById('btn-close-withdraw');
+        this.dom.withdrawBank = document.getElementById('withdraw-bank');
+        this.dom.withdrawCardNum = document.getElementById('withdraw-card-num');
+        this.dom.withdrawCardName = document.getElementById('withdraw-card-name');
+        this.dom.withdrawAmount = document.getElementById('withdraw-amount');
+        this.dom.btnWithdrawSubmit = document.getElementById('btn-withdraw-submit');
+        this.dom.withdrawLoading = document.getElementById('withdraw-loading');
+        this.dom.withdrawStatus = document.getElementById('withdraw-status');
+        this.dom.withdrawHistoryList = document.getElementById('withdraw-history-list');
     }
 
     bindEvents() {
@@ -615,6 +628,34 @@ class GameController {
                 this.executeVisaDeposit();
             });
         }
+
+        // Withdraw Events Binding
+        if (this.dom.btnOpenWithdraw) {
+            this.dom.btnOpenWithdraw.addEventListener('click', () => {
+                this.openWithdrawModal();
+            });
+        }
+
+        if (this.dom.btnCloseWithdraw) {
+            this.dom.btnCloseWithdraw.addEventListener('click', () => {
+                this.dom.withdrawModal.classList.add('hidden');
+                audioSynth.playChipSound();
+            });
+        }
+
+        if (this.dom.withdrawModal) {
+            this.dom.withdrawModal.addEventListener('click', (e) => {
+                if (e.target === this.dom.withdrawModal) {
+                    this.dom.withdrawModal.classList.add('hidden');
+                }
+            });
+        }
+
+        if (this.dom.btnWithdrawSubmit) {
+            this.dom.btnWithdrawSubmit.addEventListener('click', () => {
+                this.executeWithdrawalAction();
+            });
+        }
     }
 
     setupAudioTriggerOnFirstInteraction() {
@@ -672,6 +713,10 @@ class GameController {
         this.renderBeadPlateGrid();
         this.renderTrendLineSvg();
         this.calculateHistoryPercentages();
+
+        // Render histories
+        this.renderDepositHistory();
+        this.renderWithdrawalHistory();
 
         // Start active loop
         this.startMainGameLoop();
@@ -1141,6 +1186,9 @@ class GameController {
                 // Core Algorithm: Generate dice rolls NOW (before user peeks)
                 this.rollDiceAlgorithm();
 
+                // Áp dụng quay xúc xắc ngay dưới bát
+                this.apply3DDiceTransitions();
+
                 // Stop shake, make cup draggable
                 this.dom.diceCup.classList.remove('shake-animation');
                 this.dom.diceCup.classList.add('draggable');
@@ -1151,6 +1199,8 @@ class GameController {
                 // Auto-advance fallback after 10 seconds if user doesn't drag
                 this.bowlRevealTimeout = setTimeout(() => {
                     if (this.gameStage === 'BOWL_REVEAL') {
+                        this.dom.diceCup.style.transition = 'transform 0.8s ease-in-out, opacity 0.8s ease';
+                        this.dom.diceCup.style.transform = 'translate(120px, -150px) rotate(25deg)';
                         this.setGameStage('REVEALING');
                     }
                 }, 10000);
@@ -1171,12 +1221,13 @@ class GameController {
                 // Hide drag hint
                 this.dom.bowlPeekHint.classList.remove('visible');
 
-                // CSS 3D Rotations transition trigger (dice already rolled in BOWL_REVEAL)
-                this.apply3DDiceTransitions();
-                
-                // Mark cup as dragged away (fade out at current drag position)
+                // Mark cup as dragged away
                 this.dom.diceCup.classList.remove('draggable', 'dragging');
                 this.dom.diceCup.classList.add('dragged-away');
+                
+                // Đảm bảo bát mờ đi khi đã mở để thấy rõ xúc xắc
+                this.dom.diceCup.style.opacity = '0.1';
+                
                 audioSynth.playCupLiftSound();
                 break;
 
@@ -1325,16 +1376,14 @@ class GameController {
         const angle = Math.atan2(this.dragOffsetY, this.dragOffsetX);
         const tiltDeg = Math.min(distance * 0.15, 25);
 
-        // Dynamic opacity: fades as cup is dragged further
-        const opacity = Math.max(0.1, 1 - distance / 150);
-
-        // Apply transform: translate + rotate based on drag direction
+        // Apply transform: translate + rotate based on drag direction (Keep opacity fully opaque)
         this.dom.diceCup.style.transform = `translate(${this.dragOffsetX}px, ${this.dragOffsetY}px) rotate(${tiltDeg * Math.sign(this.dragOffsetX)}deg)`;
-        this.dom.diceCup.style.opacity = opacity;
 
         // Update status text based on drag distance
         if (distance > 50) {
             this.dom.statusBanner.innerHTML = '<span class="text-gold">🔥 THẢ ĐỂ MỞ BÁT!</span>';
+        } else {
+            this.dom.statusBanner.innerHTML = '<span class="text-gold">🖐️ KÉO BÁT ĐỂ SOI XÚC XẮC</span>';
         }
     }
 
@@ -1350,12 +1399,12 @@ class GameController {
         // Threshold: 80px from center to reveal
         if (distance >= 80) {
             // Success! Reveal the dice - cup stays at dragged position
+            this.dom.diceCup.style.transition = 'opacity 0.4s ease';
             this.setGameStage('REVEALING');
         } else {
             // Snap back to center with smooth transition
-            this.dom.diceCup.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease';
+            this.dom.diceCup.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
             this.dom.diceCup.style.transform = '';
-            this.dom.diceCup.style.opacity = '';
             
             // Re-show the hint
             this.dom.bowlPeekHint.classList.add('visible');
@@ -2268,6 +2317,176 @@ class GameController {
 
     formatNumber(val) {
         return new Intl.NumberFormat('en-US').format(val);
+    }
+
+    // --------------------------------------------------------------------------
+    // 12. WITHDRAWAL LOGIC (RÚT TIỀN)
+    // --------------------------------------------------------------------------
+    openWithdrawModal() {
+        if (!this.currentUser) return;
+        
+        // Reset Withdraw input states
+        this.dom.withdrawStatus.textContent = '';
+        this.dom.withdrawStatus.className = 'card-deposit-status';
+        this.dom.withdrawLoading.classList.add('hidden');
+        this.dom.btnWithdrawSubmit.disabled = false;
+
+        // Autofill with last withdrawal information if available
+        if (this.currentUser.lastWithdrawBank) {
+            this.dom.withdrawBank.value = this.currentUser.lastWithdrawBank;
+        }
+        if (this.currentUser.lastWithdrawAccount) {
+            this.dom.withdrawCardNum.value = this.currentUser.lastWithdrawAccount;
+        } else {
+            this.dom.withdrawCardNum.value = '';
+        }
+        if (this.currentUser.lastWithdrawName) {
+            this.dom.withdrawCardName.value = this.currentUser.lastWithdrawName;
+        } else {
+            this.dom.withdrawCardName.value = '';
+        }
+
+        this.dom.withdrawAmount.value = '500000'; // Default 500k
+
+        // Render withdrawal history
+        this.renderWithdrawalHistory();
+
+        // Show modal
+        this.dom.withdrawModal.classList.remove('hidden');
+        audioSynth.playChipSound();
+    }
+
+    executeWithdrawalAction() {
+        const bank = this.dom.withdrawBank.value;
+        const account = this.dom.withdrawCardNum.value.trim();
+        const holder = this.dom.withdrawCardName.value.trim().toUpperCase();
+        const amountVal = parseInt(this.dom.withdrawAmount.value, 10);
+
+        if (!account || !holder || isNaN(amountVal)) {
+            this.dom.withdrawStatus.textContent = 'Vui lòng điền đầy đủ số tài khoản, tên chủ tài khoản và số tiền cần rút.';
+            this.dom.withdrawStatus.className = 'card-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        if (account.length < 5) {
+            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ.';
+            this.dom.withdrawStatus.className = 'card-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        if (holder.length < 3) {
+            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ.';
+            this.dom.withdrawStatus.className = 'card-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        if (amountVal < 50000) {
+            this.dom.withdrawStatus.textContent = 'Số tiền rút tối thiểu là 50.000đ.';
+            this.dom.withdrawStatus.className = 'card-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        if (this.currentUser.balance < amountVal) {
+            this.dom.withdrawStatus.textContent = 'Số dư ví không đủ để thực hiện giao dịch này.';
+            this.dom.withdrawStatus.className = 'card-deposit-status text-red';
+            audioSynth.playLoseSound();
+            return;
+        }
+
+        // Processing state
+        this.dom.btnWithdrawSubmit.disabled = true;
+        this.dom.withdrawLoading.classList.remove('hidden');
+        this.dom.withdrawStatus.textContent = '';
+        audioSynth.playChipSound();
+
+        // 2 seconds simulated withdrawal
+        setTimeout(() => {
+            this.dom.withdrawLoading.classList.add('hidden');
+            this.dom.btnWithdrawSubmit.disabled = false;
+
+            // Success! Deduct balance and record history
+            this.executeWithdraw(amountVal, bank, account, holder);
+
+            this.dom.withdrawStatus.textContent = `Yêu cầu rút tiền ${this.formatCurrency(amountVal)}đ đã được thực hiện thành công!`;
+            this.dom.withdrawStatus.className = 'card-deposit-status text-cyan';
+        }, 2000);
+    }
+
+    executeWithdraw(amount, bank, account, holder) {
+        if (!this.currentUser) return;
+
+        // Deduct balance
+        this.currentUser.balance -= amount;
+        this.updateUserBalanceUI();
+
+        // Persist withdrawal info for autofill next time
+        const bankText = this.dom.withdrawBank.options[this.dom.withdrawBank.selectedIndex].text;
+        this.currentUser.lastWithdrawBank = bank;
+        this.currentUser.lastWithdrawAccount = account;
+        this.currentUser.lastWithdrawName = holder;
+
+        // Push transaction record
+        const time = new Date();
+        const timeStr = `${String(time.getDate()).padStart(2, '0')}/${String(time.getMonth() + 1).padStart(2, '0')} ${String(time.getHours()).padStart(2, '0')}:${String(time.getMinutes()).padStart(2, '0')}`;
+
+        this.currentUser.withdrawals = this.currentUser.withdrawals || [];
+        this.currentUser.withdrawals.push({
+            bank: bankText,
+            account: account,
+            amount: amount,
+            time: timeStr,
+            status: 'Thành công'
+        });
+
+        // Limit list to last 5
+        if (this.currentUser.withdrawals.length > 5) {
+            this.currentUser.withdrawals.shift();
+        }
+
+        // Save
+        this.saveUsersToLocalStorage();
+
+        // Audio & Visual feedback
+        audioSynth.playWinSound();
+        this.renderWithdrawalHistory();
+
+        // Push to Chat
+        this.addChatMessage("Hệ Thống", `Giao dịch rút tiền thành công! Tài khoản đã trừ -${this.formatCurrency(amount)}đ (Kênh: ${bankText}, STK: ${account.slice(0, 3)}***).`, "sys");
+    }
+
+    renderWithdrawalHistory() {
+        if (!this.currentUser || !this.dom.withdrawHistoryList) return;
+
+        this.dom.withdrawHistoryList.innerHTML = '';
+        const withdrawals = this.currentUser.withdrawals || [];
+
+        if (withdrawals.length === 0) {
+            this.dom.withdrawHistoryList.innerHTML = '<p class="no-history-text">Chưa có lịch sử giao dịch rút tiền.</p>';
+            return;
+        }
+
+        // Render backwards (newest first)
+        const reversedWithdrawals = [...withdrawals].reverse();
+        reversedWithdrawals.forEach(w => {
+            const item = document.createElement('div');
+            item.className = 'history-deposit-item'; // Reuse styling
+
+            item.innerHTML = `
+                <div class="history-dep-info">
+                    <span class="history-dep-method text-red">${w.bank}</span>
+                    <span class="history-dep-time">${w.time}</span>
+                </div>
+                <div class="history-dep-value">
+                    <span class="history-dep-amount text-red">-${this.formatCurrency(w.amount)}đ</span>
+                    <span class="history-dep-status text-gold">${w.status}</span>
+                </div>
+            `;
+            this.dom.withdrawHistoryList.appendChild(item);
+        });
     }
 }
 

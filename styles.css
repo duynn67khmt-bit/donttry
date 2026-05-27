@@ -584,14 +584,28 @@ button {
 
 /* 3D Dice Cubes Container */
 .dice-cubes-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
     position: absolute;
     width: 100%;
     height: 100%;
     z-index: 10;
+}
+
+#dice-wrapper-1 {
+    position: absolute;
+    left: calc(50% - 21px);
+    top: 44px;
+}
+
+#dice-wrapper-2 {
+    position: absolute;
+    left: 51px;
+    top: 94px;
+}
+
+#dice-wrapper-3 {
+    position: absolute;
+    left: 107px;
+    top: 94px;
 }
 
 .dice-cube-wrapper {
@@ -1870,6 +1884,28 @@ button {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(245,158,11,0.6);
     background: linear-gradient(135deg, #fbbf24 0%, var(--gold) 100%);
+}
+
+.withdraw-header-btn {
+    background: linear-gradient(135deg, var(--tai-red) 0%, #b91c1c 100%);
+    color: var(--white);
+    font-weight: 700;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    text-transform: uppercase;
+    transition: var(--transition-fast);
+}
+
+.withdraw-header-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+    background: linear-gradient(135deg, #f87171 0%, var(--tai-red) 100%);
 }
 
 /* ==========================================

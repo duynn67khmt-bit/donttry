@@ -102,6 +102,9 @@
                     <button id="btn-open-deposit" class="deposit-header-btn" title="Nạp Tiền">
                         <i class="fa-solid fa-circle-plus"></i> Nạp
                     </button>
+                    <button id="btn-open-withdraw" class="withdraw-header-btn" title="Rút Tiền">
+                        <i class="fa-solid fa-circle-minus"></i> Rút
+                    </button>
                 </div>
             </div>
 
@@ -665,6 +668,63 @@
                 <h3>NHẬT KÝ NẠP TIỀN GẦN ĐÂY</h3>
                 <div class="deposit-history-list" id="deposit-history-list">
                     <p class="no-history-text">Chưa có lịch sử giao dịch nạp tiền.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WITHDRAW MODAL -->
+    <div id="withdraw-modal" class="deposit-modal hidden">
+        <div class="deposit-container glass-panel">
+            <div class="deposit-modal-header">
+                <h2><i class="fa-solid fa-money-bill-transfer text-red"></i> RÚT TIỀN TÀI KHOẢN</h2>
+                <button id="btn-close-withdraw" class="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="card-deposit-layout">
+                <div class="deposit-input-group">
+                    <label for="withdraw-bank">Chọn Ngân Hàng Nhận:</label>
+                    <select id="withdraw-bank">
+                        <option value="techcombank">Techcombank</option>
+                        <option value="vietcombank">Vietcombank</option>
+                        <option value="acb">ACB</option>
+                        <option value="mbbank">MB Bank</option>
+                        <option value="sacombank">Sacombank</option>
+                        <option value="momo">Ví MoMo</option>
+                    </select>
+                </div>
+                <div class="deposit-input-group">
+                    <label for="withdraw-card-num">Số Tài Khoản / Số Điện Thoại:</label>
+                    <input type="text" id="withdraw-card-num" placeholder="Nhập số tài khoản nhận tiền..." autocomplete="off">
+                </div>
+                <div class="deposit-input-group">
+                    <label for="withdraw-card-name">Tên Chủ Tài Khoản (Không dấu):</label>
+                    <input type="text" id="withdraw-card-name" placeholder="NGUYEN VAN A" autocomplete="off">
+                </div>
+                <div class="deposit-input-group">
+                    <label for="withdraw-amount">Số Tiền Rút (đ):</label>
+                    <input type="number" id="withdraw-amount" placeholder="Nhập số tiền muốn rút..." autocomplete="off" min="50000" value="500000">
+                </div>
+                
+                <div class="card-action-row">
+                    <button id="btn-withdraw-submit" class="btn-primary" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
+                        XÁC NHẬN RÚT TIỀN <i class="fa-solid fa-circle-check"></i>
+                    </button>
+                </div>
+                
+                <!-- Loading spinner/status for withdrawal -->
+                <div id="withdraw-loading" class="card-deposit-loading hidden" style="color: var(--error);">
+                    <div class="spinner" style="border-top-color: var(--error); border-left-color: rgba(239, 68, 68, 0.2);"></div>
+                    <span>Đang xử lý yêu cầu rút tiền...</span>
+                </div>
+                <div id="withdraw-status" class="card-deposit-status"></div>
+            </div>
+            
+            <!-- WITHDRAWAL HISTORY LOGS -->
+            <div class="deposit-history-section" style="margin-top: 15px;">
+                <h3>LỊCH SỬ RÚT TIỀN GẦN ĐÂY</h3>
+                <div class="deposit-history-list" id="withdraw-history-list">
+                    <p class="no-history-text">Chưa có lịch sử giao dịch rút tiền.</p>
                 </div>
             </div>
         </div>
