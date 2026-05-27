@@ -252,10 +252,11 @@ class GameController {
         this.activeUsername = localStorage.getItem('tx_active_user') || null;
         this.currentUser = null;
 
-        // Stage configurations: 'BETTING' (30s) -> 'SHAKING' (3s) -> 'REVEALING' (2s) -> 'PAYOUT' (3s)
+        // Stage configurations: 'BETTING' (30s) -> 'SHAKING' (3s) -> 'BOWL_REVEAL' (click) -> 'REVEALING' (2s) -> 'PAYOUT' (4s) -> 'REST' (20s)
         this.gameStage = 'BETTING'; 
         this.timer = 30;
         this.timerInterval = null;
+        this.bowlRevealTimeout = null;
         this.botInterval = null;
         this.chatInterval = null;
 
@@ -323,6 +324,8 @@ class GameController {
         this.dom.dice2 = document.getElementById('dice-2');
         this.dom.dice3 = document.getElementById('dice-3');
         this.dom.historyStrip = document.getElementById('history-strip');
+        this.dom.bowlPeekPrompt = document.getElementById('bowl-peek-prompt');
+        this.dom.restOverlay = document.getElementById('rest-overlay');
 
         // Betting Board
         this.dom.betXiu = document.getElementById('bet-area-xiu');
@@ -452,6 +455,13 @@ class GameController {
         this.dom.betXiu.addEventListener('click', () => this.placeUserBet('xiu'));
         this.dom.betTai.addEventListener('click', () => this.placeUserBet('tai'));
         this.dom.betBao.addEventListener('click', () => this.placeUserBet('bao'));
+
+        // Bowl Peek (Kéo Bát) click listener
+        this.dom.bowlPeekPrompt.addEventListener('click', () => {
+            if (this.gameStage === 'BOWL_REVEAL') {
+                this.setGameStage('REVEALING');
+            }
+        });
 
         // Bet controls
         this.dom.btnBetClear.addEventListener('click', () => this.clearUserBets());
@@ -1047,6 +1057,9 @@ class GameController {
         
         if (this.timerInterval) clearInterval(this.timerInterval);
         this.timerInterval = setInterval(() => {
+            // BOWL_REVEAL stage waits for user click, don't count down
+            if (this.gameStage === 'BOWL_REVEAL') return;
+
             this.timer--;
             
             if (this.timer < 0) {
@@ -1068,8 +1081,14 @@ class GameController {
                 this.dom.statusBanner.className = 'game-status-banner text-gold';
                 
                 // Set dice cup state (down, hiding dice)
-                this.dom.diceCup.classList.remove('lift-up');
-                this.dom.diceCup.classList.remove('shake-animation');
+                this.dom.diceCup.classList.remove('lift-up', 'slide-reveal', 'shake-animation');
+                this.dom.diceCup.style.animation = 'none';
+                void this.dom.diceCup.offsetHeight;
+                this.dom.diceCup.style.animation = '';
+
+                // Hide overlays
+                this.dom.bowlPeekPrompt.classList.remove('visible');
+                this.dom.restOverlay.classList.remove('visible');
 
                 // Clear bets counters
                 this.resetPlacedBetsData();
@@ -1092,6 +1111,10 @@ class GameController {
                 
                 this.enableBettingControls(false);
 
+                // Hide overlays
+                this.dom.bowlPeekPrompt.classList.remove('visible');
+                this.dom.restOverlay.classList.remove('visible');
+
                 // Add shake classes and play sound
                 this.dom.diceCup.classList.add('shake-animation');
                 audioSynth.playShakeSound(3);
@@ -1100,24 +1123,53 @@ class GameController {
                 clearInterval(this.botInterval);
                 break;
 
+            case 'BOWL_REVEAL':
+                // Pause the timer - wait for user click to reveal
+                this.timer = 0;
+                this.updateTimerUI();
+                this.dom.statusBanner.innerHTML = '<span class="text-gold">👆 NHẤN ĐỂ KÉO BÁT SOI</span>';
+                this.dom.statusBanner.className = 'game-status-banner text-gold';
+
+                // Core Algorithm: Generate dice rolls NOW (before user peeks)
+                this.rollDiceAlgorithm();
+
+                // Stop shake animation
+                this.dom.diceCup.classList.remove('shake-animation');
+
+                // Show the peek prompt overlay
+                this.dom.bowlPeekPrompt.classList.add('visible');
+
+                // Auto-advance fallback after 10 seconds if user doesn't click
+                this.bowlRevealTimeout = setTimeout(() => {
+                    if (this.gameStage === 'BOWL_REVEAL') {
+                        this.setGameStage('REVEALING');
+                    }
+                }, 10000);
+                break;
+
             case 'REVEALING':
                 this.timer = 2;
                 this.updateTimerUI();
                 this.dom.statusBanner.textContent = 'MỞ BÁT KẾT QUẢ!';
                 this.dom.statusBanner.className = 'game-status-banner text-gold';
 
-                // Core Algorithm: Generate dice rolls
-                this.rollDiceAlgorithm();
+                // Clear auto-reveal timeout (user may have clicked manually)
+                if (this.bowlRevealTimeout) {
+                    clearTimeout(this.bowlRevealTimeout);
+                    this.bowlRevealTimeout = null;
+                }
 
-                // CSS 3D Rotations transition trigger
+                // Hide peek prompt
+                this.dom.bowlPeekPrompt.classList.remove('visible');
+
+                // CSS 3D Rotations transition trigger (dice already rolled in BOWL_REVEAL)
                 this.apply3DDiceTransitions();
                 
-                // Lift cup
+                // Slide the cup sideways (kéo bát effect)
                 setTimeout(() => {
-                    this.dom.diceCup.classList.remove('shake-animation');
-                    this.dom.diceCup.classList.add('lift-up');
+                    this.dom.diceCup.classList.add('slide-reveal');
                     audioSynth.playCupLiftSound();
-                }, 400);
+                }, 200);
                 break;
 
             case 'PAYOUT':
@@ -1151,6 +1203,28 @@ class GameController {
                 // Calculate User Win/Loss and payout
                 this.processUserPayout(resultType, sum);
                 break;
+
+            case 'REST':
+                this.timer = 20;
+                this.updateTimerUI();
+                this.dom.statusBanner.innerHTML = '<span class="text-muted">⏳ NGHỈ GIỮA HIỆP</span>';
+                this.dom.statusBanner.className = 'game-status-banner text-muted';
+
+                // Reset cup position for next round
+                this.dom.diceCup.classList.remove('lift-up', 'slide-reveal');
+                this.dom.diceCup.style.animation = 'none';
+                // Force reflow then remove inline animation override
+                void this.dom.diceCup.offsetHeight;
+                this.dom.diceCup.style.animation = '';
+
+                // Show rest overlay on the plate
+                this.dom.restOverlay.classList.add('visible');
+
+                // Clear winning highlights
+                this.dom.betXiu.classList.remove('win-flash', 'active-glow');
+                this.dom.betTai.classList.remove('win-flash', 'active-glow');
+                this.dom.betBao.classList.remove('win-flash', 'active-glow');
+                break;
         }
     }
 
@@ -1158,10 +1232,16 @@ class GameController {
         if (this.gameStage === 'BETTING') {
             this.setGameStage('SHAKING');
         } else if (this.gameStage === 'SHAKING') {
+            this.setGameStage('BOWL_REVEAL');
+        } else if (this.gameStage === 'BOWL_REVEAL') {
+            // This should not be called by timer - BOWL_REVEAL advances via user click
             this.setGameStage('REVEALING');
         } else if (this.gameStage === 'REVEALING') {
             this.setGameStage('PAYOUT');
         } else if (this.gameStage === 'PAYOUT') {
+            this.setGameStage('REST');
+        } else if (this.gameStage === 'REST') {
+            this.dom.restOverlay.classList.remove('visible');
             this.setGameStage('BETTING');
         }
     }
@@ -1169,8 +1249,16 @@ class GameController {
     updateTimerUI() {
         this.dom.timerNumber.textContent = this.timer;
         
-        // Update SVG circle countdown bar
-        const totalDuration = this.gameStage === 'BETTING' ? 30 : (this.gameStage === 'SHAKING' ? 3 : (this.gameStage === 'REVEALING' ? 2 : 4));
+        // Map stage to total duration
+        const stageDurations = {
+            'BETTING': 30,
+            'SHAKING': 3,
+            'BOWL_REVEAL': 1, // No countdown, just show 0
+            'REVEALING': 2,
+            'PAYOUT': 4,
+            'REST': 20
+        };
+        const totalDuration = stageDurations[this.gameStage] || 1;
         const progressPercent = this.timer / totalDuration;
         const circumference = 283; // 2 * PI * 45
         const offset = circumference * (1 - progressPercent);
@@ -1187,6 +1275,11 @@ class GameController {
             }
         } else if (this.gameStage === 'SHAKING') {
             this.dom.timerProgress.style.stroke = '#64748b'; // slate gray
+        } else if (this.gameStage === 'BOWL_REVEAL') {
+            this.dom.timerProgress.style.stroke = 'var(--gold)';
+        } else if (this.gameStage === 'REST') {
+            this.dom.timerProgress.style.stroke = '#475569'; // dark slate
+            this.dom.timerNumber.classList.remove('text-red');
         } else {
             this.dom.timerProgress.style.stroke = 'var(--success)';
         }
