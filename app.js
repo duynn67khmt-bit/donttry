@@ -252,9 +252,9 @@ class GameController {
         this.activeUsername = localStorage.getItem('tx_active_user') || null;
         this.currentUser = null;
 
-        // Stage configurations: 'BETTING' (20s) -> 'SHAKING' (3s) -> 'REVEALING' (2s) -> 'PAYOUT' (3s)
+        // Stage configurations: 'BETTING' (30s) -> 'SHAKING' (3s) -> 'REVEALING' (2s) -> 'PAYOUT' (3s)
         this.gameStage = 'BETTING'; 
-        this.timer = 20;
+        this.timer = 30;
         this.timerInterval = null;
         this.botInterval = null;
         this.chatInterval = null;
@@ -1062,7 +1062,7 @@ class GameController {
         
         switch (stage) {
             case 'BETTING':
-                this.timer = 20;
+                this.timer = 30;
                 this.updateTimerUI();
                 this.dom.statusBanner.innerHTML = '<span class="pulse-dot"></span> ĐANG ĐẶT CƯỢC...';
                 this.dom.statusBanner.className = 'game-status-banner text-gold';
@@ -1170,7 +1170,7 @@ class GameController {
         this.dom.timerNumber.textContent = this.timer;
         
         // Update SVG circle countdown bar
-        const totalDuration = this.gameStage === 'BETTING' ? 20 : (this.gameStage === 'SHAKING' ? 3 : (this.gameStage === 'REVEALING' ? 2 : 4));
+        const totalDuration = this.gameStage === 'BETTING' ? 30 : (this.gameStage === 'SHAKING' ? 3 : (this.gameStage === 'REVEALING' ? 2 : 4));
         const progressPercent = this.timer / totalDuration;
         const circumference = 283; // 2 * PI * 45
         const offset = circumference * (1 - progressPercent);
