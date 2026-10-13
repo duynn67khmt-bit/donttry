@@ -979,12 +979,12 @@ class GameController {
 
             item.innerHTML = `
                 <div class="history-dep-info">
-                    <span class="history-dep-method text-gold">${dep.method}</span>
-                    <span class="history-dep-time">${dep.time}</span>
+                    <span class="history-dep-method text-gold">${this.escapeHtml(dep.method)}</span>
+                    <span class="history-dep-time">${this.escapeHtml(dep.time)}</span>
                 </div>
                 <div class="history-dep-value">
                     <span class="history-dep-amount text-cyan">+${this.formatCurrency(dep.amount)}đ</span>
-                    <span class="history-dep-status text-gold">${dep.status}</span>
+                    <span class="history-dep-status text-gold">${this.escapeHtml(dep.status)}</span>
                 </div>
             `;
             this.dom.depositHistoryList.appendChild(item);
@@ -2477,16 +2477,26 @@ class GameController {
 
             item.innerHTML = `
                 <div class="history-dep-info">
-                    <span class="history-dep-method text-red">${w.bank}</span>
-                    <span class="history-dep-time">${w.time}</span>
+                    <span class="history-dep-method text-red">${this.escapeHtml(w.bank)}</span>
+                    <span class="history-dep-time">${this.escapeHtml(w.time)}</span>
                 </div>
                 <div class="history-dep-value">
                     <span class="history-dep-amount text-red">-${this.formatCurrency(w.amount)}đ</span>
-                    <span class="history-dep-status text-gold">${w.status}</span>
+                    <span class="history-dep-status text-gold">${this.escapeHtml(w.status)}</span>
                 </div>
             `;
             this.dom.withdrawHistoryList.appendChild(item);
         });
+    }
+
+    escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 }
 
