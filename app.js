@@ -973,6 +973,8 @@ class GameController {
 
         // Render backwards (newest first)
         const reversedDeposits = [...deposits].reverse();
+        // Optimization: Use DocumentFragment to batch deposit transaction item DOM appends
+        const fragment = document.createDocumentFragment();
         reversedDeposits.forEach(dep => {
             const item = document.createElement('div');
             item.className = 'history-deposit-item';
@@ -987,8 +989,9 @@ class GameController {
                     <span class="history-dep-status text-gold">${dep.status}</span>
                 </div>
             `;
-            this.dom.depositHistoryList.appendChild(item);
+            fragment.appendChild(item);
         });
+        this.dom.depositHistoryList.appendChild(fragment);
     }
 
     // --------------------------------------------------------------------------
@@ -2101,6 +2104,8 @@ class GameController {
         // Take latest 12 entries
         const latest = this.history.slice(-12);
         
+        // Optimization: Use DocumentFragment to batch dot DOM appends into 1 operation
+        const fragment = document.createDocumentFragment();
         latest.forEach(item => {
             const dot = document.createElement('div');
             dot.className = `history-strip-dot ${item.result}`;
@@ -2109,8 +2114,9 @@ class GameController {
             dot.textContent = isBao ? 'B' : (item.result === 'tai' ? 'T' : 'X');
             dot.title = `Tổng: ${item.sum} điểm (Mặt: ${item.dice.join(', ')})`;
             
-            this.dom.historyStrip.appendChild(dot);
+            fragment.appendChild(dot);
         });
+        this.dom.historyStrip.appendChild(fragment);
     }
 
     renderBeadPlateGrid() {
@@ -2139,7 +2145,8 @@ class GameController {
             }
         }
 
-        // Render matrix elements
+        // Optimization: Use DocumentFragment to batch 84 cell DOM appends into 1 operation, preventing layout reflow thrashing
+        const fragment = document.createDocumentFragment();
         for (let row = 0; row < rowsCount; row++) {
             for (let col = 0; col < colsCount; col++) {
                 const cellData = matrix[row][col];
@@ -2154,9 +2161,10 @@ class GameController {
                     cell.appendChild(bead);
                 }
                 
-                this.dom.beadPlateContainer.appendChild(cell);
+                fragment.appendChild(cell);
             }
         }
+        this.dom.beadPlateContainer.appendChild(fragment);
     }
 
     renderTrendLineSvg() {
@@ -2258,13 +2266,26 @@ class GameController {
         let xiuCount = 0;
         let baoCount = 0;
 
-        this.history.forEach(item => {
+        let longest = 0;
+        let currentStreak = 0;
+        let streakType = null;
+
+        // Optimization: Calculate outcome counts and longest streak in a single loop iteration over history
+        for (let i = 0; i < this.history.length; i++) {
+            const item = this.history[i];
+
             if (item.result === 'tai') taiCount++;
             else if (item.result === 'xiu') xiuCount++;
-            else if (item.result === 'bao') {
-                baoCount++;
+            else if (item.result === 'bao') baoCount++;
+
+            if (item.result === streakType) {
+                currentStreak++;
+            } else {
+                streakType = item.result;
+                currentStreak = 1;
             }
-        });
+            if (currentStreak > longest) longest = currentStreak;
+        }
 
         const total = this.history.length;
         const xiuPercent = Math.round((xiuCount / total) * 100);
@@ -2279,22 +2300,6 @@ class GameController {
         // Update card stats footer info
         this.dom.totalRoundsCount.textContent = total;
         this.dom.totalBaosCount.textContent = baoCount;
-
-        // Calculate longest streak (bệt cầu)
-        let longest = 0;
-        let currentStreak = 0;
-        let streakType = null;
-
-        this.history.forEach(item => {
-            if (item.result === streakType) {
-                currentStreak++;
-            } else {
-                streakType = item.result;
-                currentStreak = 1;
-            }
-            if (currentStreak > longest) longest = currentStreak;
-        });
-
         this.dom.longestStreak.textContent = longest;
     }
 
@@ -2471,6 +2476,8 @@ class GameController {
 
         // Render backwards (newest first)
         const reversedWithdrawals = [...withdrawals].reverse();
+        // Optimization: Use DocumentFragment to batch withdrawal transaction item DOM appends
+        const fragment = document.createDocumentFragment();
         reversedWithdrawals.forEach(w => {
             const item = document.createElement('div');
             item.className = 'history-deposit-item'; // Reuse styling
@@ -2485,8 +2492,9 @@ class GameController {
                     <span class="history-dep-status text-gold">${w.status}</span>
                 </div>
             `;
-            this.dom.withdrawHistoryList.appendChild(item);
+            fragment.appendChild(item);
         });
+        this.dom.withdrawHistoryList.appendChild(fragment);
     }
 }
 
