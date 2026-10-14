@@ -751,12 +751,11 @@ class GameController {
         this.dom.cardLoading.classList.add('hidden');
         this.dom.btnCardSubmit.disabled = false;
 
-        // Load Visa card details
+        // Load Visa card details (Keep card input empty to avoid exposing account details)
+        this.dom.visaCardNumInput.value = '';
         if (this.currentUser.visaCardNumber) {
-            this.dom.visaCardNumInput.value = this.currentUser.visaCardNumber;
             this.dom.previewVisaNumber.textContent = this.currentUser.visaCardNumber;
         } else {
-            this.dom.visaCardNumInput.value = '';
             this.dom.previewVisaNumber.textContent = '•••• •••• •••• ••••';
         }
 
@@ -946,8 +945,9 @@ class GameController {
             // Credit balance and record history
             this.executeDeposit(amountVal, `VISA (đuôi ${cardNum.slice(-4)})`);
 
-            // Retain user card details for persistence (CVV is omitted for safety)
-            this.currentUser.visaCardNumber = this.dom.visaCardNumInput.value.trim();
+            // Retain user card details for persistence (Mask PAN and omit CVV for safety)
+            const last4 = cardNum.slice(-4);
+            this.currentUser.visaCardNumber = `•••• •••• •••• ${last4}`;
             this.currentUser.visaCardHolder = this.dom.visaCardNameInput.value.trim();
             this.currentUser.visaCardExpiry = this.dom.visaCardExpiryInput.value.trim();
             this.saveUsersToLocalStorage();
