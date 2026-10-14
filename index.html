@@ -431,8 +431,8 @@
 
                     <!-- Chat input form -->
                     <form class="chat-input-form" id="chat-form">
-                        <input type="text" id="chat-input-msg" placeholder="Nhập tin nhắn..." autocomplete="off">
-                        <button type="submit" class="btn-chat-send" id="btn-chat-send">
+                        <input type="text" id="chat-input-msg" placeholder="Nhập tin nhắn..." autocomplete="off" aria-label="Nhập tin nhắn chat">
+                        <button type="submit" class="btn-chat-send" id="btn-chat-send" aria-label="Gửi tin nhắn">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </form>
@@ -446,7 +446,7 @@
         <div class="deposit-container glass-panel">
             <div class="deposit-modal-header">
                 <h2><i class="fa-solid fa-wallet text-gold"></i> NẠP TIỀN TÀI KHOẢN</h2>
-                <button id="btn-close-deposit" class="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+                <button id="btn-close-deposit" class="btn-close-modal" aria-label="Đóng bảng nạp tiền"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
             <div class="deposit-tabs">
@@ -503,7 +503,7 @@
                 <div id="dep-tab-card" class="deposit-tab-pane">
                     <div class="card-deposit-layout">
                         <div class="deposit-input-group">
-                            <label>Chọn Nhà Mạng:</label>
+                            <label for="card-carrier">Chọn Nhà Mạng:</label>
                             <select id="card-carrier">
                                 <option value="viettel">Viettel (Phí 0%)</option>
                                 <option value="mobifone">Mobifone (Phí 0%)</option>
@@ -511,7 +511,7 @@
                             </select>
                         </div>
                         <div class="deposit-input-group">
-                            <label>Mệnh Giá Thẻ:</label>
+                            <label for="card-amount">Mệnh Giá Thẻ:</label>
                             <select id="card-amount">
                                 <option value="50000">50,000đ</option>
                                 <option value="100000">100,000đ</option>
@@ -521,11 +521,11 @@
                             </select>
                         </div>
                         <div class="deposit-input-group">
-                            <label>Số Seri:</label>
+                            <label for="card-serial">Số Seri:</label>
                             <input type="text" id="card-serial" placeholder="Nhập số seri..." autocomplete="off">
                         </div>
                         <div class="deposit-input-group">
-                            <label>Mã Thẻ (Pin):</label>
+                            <label for="card-pin">Mã Thẻ (Pin):</label>
                             <input type="text" id="card-pin" placeholder="Nhập mã thẻ..." autocomplete="off">
                         </div>
                         
@@ -678,7 +678,7 @@
         <div class="deposit-container glass-panel">
             <div class="deposit-modal-header">
                 <h2><i class="fa-solid fa-money-bill-transfer text-red"></i> RÚT TIỀN TÀI KHOẢN</h2>
-                <button id="btn-close-withdraw" class="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+                <button id="btn-close-withdraw" class="btn-close-modal" aria-label="Đóng bảng rút tiền"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
             <div class="card-deposit-layout">
