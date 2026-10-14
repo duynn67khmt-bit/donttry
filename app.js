@@ -2194,6 +2194,9 @@ class GameController {
             pointsCoords.push({ x, y, data: item });
         });
 
+        // Optimization: Use DocumentFragment to batch SVG element appends into 1 operation, reducing DOM reflows and layout recalcs
+        const fragment = document.createDocumentFragment();
+
         // 1. Draw horizontal dividing line at 10.5 (Tài/Xỉu divider line)
         const lineY10_5 = height - padding - (10.5 - yMin) * yScale;
         const dividerLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -2204,7 +2207,7 @@ class GameController {
         dividerLine.setAttribute("stroke", "rgba(255,255,255,0.06)");
         dividerLine.setAttribute("stroke-width", "2");
         dividerLine.setAttribute("stroke-dasharray", "4 4");
-        this.dom.trendSvg.appendChild(dividerLine);
+        fragment.appendChild(dividerLine);
 
         // 2. Draw trend line paths
         if (pointsCoords.length > 1) {
@@ -2220,7 +2223,7 @@ class GameController {
             polyline.setAttribute("stroke-width", "3");
             polyline.setAttribute("stroke-linecap", "round");
             polyline.setAttribute("stroke-linejoin", "round");
-            this.dom.trendSvg.appendChild(polyline);
+            fragment.appendChild(polyline);
         }
 
         // 3. Draw glowing circles at result nodes
@@ -2244,7 +2247,7 @@ class GameController {
             tooltip.textContent = `${pt.data.result === 'tai' ? 'Tài' : (pt.data.result === 'xiu' ? 'Xỉu' : 'Bão')} - ${pt.data.sum} điểm (${pt.data.dice.join(',')})`;
             circle.appendChild(tooltip);
 
-            this.dom.trendSvg.appendChild(circle);
+            fragment.appendChild(circle);
 
             // Add small text of score above node
             const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -2255,8 +2258,10 @@ class GameController {
             text.setAttribute("font-family", "var(--font-digital)");
             text.setAttribute("text-anchor", "middle");
             text.textContent = pt.data.sum;
-            this.dom.trendSvg.appendChild(text);
+            fragment.appendChild(text);
         });
+
+        this.dom.trendSvg.appendChild(fragment);
     }
 
     calculateHistoryPercentages() {
