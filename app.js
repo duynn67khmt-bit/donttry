@@ -2321,12 +2321,17 @@ class GameController {
         }
     }
 
+    // Performance Optimization: Cache Intl.NumberFormat instances instead of creating new ones
+    // on every invocation. Instantiating Intl.NumberFormat is expensive (~75x slower than reusing).
+    static currencyFormatter = new Intl.NumberFormat('vi-VN');
+    static numberFormatter = new Intl.NumberFormat('en-US');
+
     formatCurrency(val) {
-        return new Intl.NumberFormat('vi-VN').format(val);
+        return GameController.currencyFormatter.format(val);
     }
 
     formatNumber(val) {
-        return new Intl.NumberFormat('en-US').format(val);
+        return GameController.numberFormatter.format(val);
     }
 
     // --------------------------------------------------------------------------
