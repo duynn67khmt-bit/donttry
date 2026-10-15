@@ -30,11 +30,11 @@
                 <h2>ĐĂNG NHẬP</h2>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="login-username" placeholder="Tên đăng nhập" required autocomplete="off">
+                    <input type="text" id="login-username" placeholder="Tên đăng nhập" required autocomplete="off" aria-label="Tên đăng nhập">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="Mật khẩu" required>
+                    <input type="password" id="login-password" placeholder="Mật khẩu" required aria-label="Mật khẩu">
                 </div>
                 <div class="auth-error" id="login-error"></div>
                 <button id="btn-login" class="btn-primary">Đăng Nhập <i class="fa-solid fa-right-to-bracket"></i></button>
@@ -46,15 +46,15 @@
                 <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" required autocomplete="off">
+                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" required autocomplete="off" aria-label="Tên đăng nhập mới">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" required>
+                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" required aria-label="Mật khẩu mới">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-circle-check"></i>
-                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required>
+                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required aria-label="Xác nhận mật khẩu">
                 </div>
                 <div class="auth-error" id="register-error"></div>
                 <button id="btn-register" class="btn-primary">Tạo Tài Khoản <i class="fa-solid fa-user-plus"></i></button>
@@ -270,7 +270,7 @@
                     <!-- MAIN BET AREAS: TÀI vs XỈU -->
                     <div class="bet-areas-wrapper">
                         <!-- BET XỈU (SMALL) -->
-                        <div class="bet-area-card bet-xiu" id="bet-area-xiu" data-type="xiu">
+                        <div class="bet-area-card bet-xiu" id="bet-area-xiu" data-type="xiu" role="button" tabindex="0" aria-label="Đặt cược cửa Xỉu (Tổng điểm 4 đến 10, tỷ lệ 1 ăn 1)">
                             <div class="bet-label-wrapper">
                                 <span class="bet-title">XỈU</span>
                                 <span class="bet-subtitle">SMALL</span>
@@ -291,7 +291,7 @@
                         </div>
 
                         <!-- MIDDLE: SPECIFIC TRIPLE (CƯỢC BÃO) -->
-                        <div class="bet-area-card bet-bao" id="bet-area-bao" data-type="bao">
+                        <div class="bet-area-card bet-bao" id="bet-area-bao" data-type="bao" role="button" tabindex="0" aria-label="Đặt cược Cược Bão (3 xúc xắc giống nhau, tỷ lệ 1 ăn 30)">
                             <div class="bet-label-wrapper">
                                 <span class="bet-title-small">CƯỢC BÃO</span>
                                 <span class="bet-subtitle">ANY TRIPLE</span>
@@ -308,7 +308,7 @@
                         </div>
 
                         <!-- BET TÀI (BIG) -->
-                        <div class="bet-area-card bet-tai" id="bet-area-tai" data-type="tai">
+                        <div class="bet-area-card bet-tai" id="bet-area-tai" data-type="tai" role="button" tabindex="0" aria-label="Đặt cược cửa Tài (Tổng điểm 11 đến 17, tỷ lệ 1 ăn 1)">
                             <div class="bet-label-wrapper">
                                 <span class="bet-title">TÀI</span>
                                 <span class="bet-subtitle">BIG</span>
