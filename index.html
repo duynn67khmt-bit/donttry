@@ -30,7 +30,7 @@
                 <h2>ĐĂNG NHẬP</h2>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="login-username" placeholder="Tên đăng nhập" required autocomplete="off">
+                    <input type="text" id="login-username" placeholder="Tên đăng nhập" maxlength="20" required autocomplete="off">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
@@ -46,7 +46,7 @@
                 <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" required autocomplete="off">
+                    <input type="text" id="register-username" placeholder="Tên đăng nhập (4-20 ký tự)" maxlength="20" required autocomplete="off">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
@@ -431,7 +431,7 @@
 
                     <!-- Chat input form -->
                     <form class="chat-input-form" id="chat-form">
-                        <input type="text" id="chat-input-msg" placeholder="Nhập tin nhắn..." autocomplete="off" aria-label="Nhập tin nhắn chat">
+                        <input type="text" id="chat-input-msg" placeholder="Nhập tin nhắn..." maxlength="200" autocomplete="off" aria-label="Nhập tin nhắn chat">
                         <button type="submit" class="btn-chat-send" id="btn-chat-send" aria-label="Gửi tin nhắn">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>

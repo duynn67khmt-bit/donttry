@@ -1036,8 +1036,13 @@ class GameController {
             return;
         }
 
-        if (username.length < 4) {
-            this.dom.registerError.textContent = 'Tên đăng nhập phải chứa ít nhất 4 ký tự.';
+        if (username.length < 4 || username.length > 20) {
+            this.dom.registerError.textContent = 'Tên đăng nhập phải từ 4 đến 20 ký tự.';
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            this.dom.registerError.textContent = 'Tên đăng nhập chỉ chứa chữ cái, số và dấu gạch dưới.';
             return;
         }
 
@@ -1982,8 +1987,12 @@ class GameController {
     }
 
     handleUserSendChatMessage() {
-        const text = this.dom.chatInputMsg.value.trim();
+        let text = this.dom.chatInputMsg.value.trim();
         if (!text) return;
+
+        if (text.length > 200) {
+            text = text.substring(0, 200);
+        }
 
         // Post user message
         this.addChatMessage(this.currentUser.username, text, "VIP 3 (Hội Viên)", true);
