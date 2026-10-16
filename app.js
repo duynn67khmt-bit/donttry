@@ -1036,13 +1036,19 @@ class GameController {
             return;
         }
 
-        if (username.length < 4) {
-            this.dom.registerError.textContent = 'Tên đăng nhập phải chứa ít nhất 4 ký tự.';
+        // Security Input Validation: Restrict username format and length to prevent DoS and injection attacks
+        if (username.length < 4 || username.length > 20) {
+            this.dom.registerError.textContent = 'Tên đăng nhập phải từ 4 đến 20 ký tự.';
             return;
         }
 
-        if (password.length < 6) {
-            this.dom.registerError.textContent = 'Mật khẩu phải chứa ít nhất 6 ký tự.';
+        if (!/^[a-z0-9_]+$/.test(username)) {
+            this.dom.registerError.textContent = 'Tên đăng nhập chỉ bao gồm chữ cái, số và dấu gạch dưới (_).';
+            return;
+        }
+
+        if (password.length < 6 || password.length > 50) {
+            this.dom.registerError.textContent = 'Mật khẩu phải từ 6 đến 50 ký tự.';
             return;
         }
 
