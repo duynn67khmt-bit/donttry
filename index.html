@@ -46,15 +46,15 @@
                 <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" required autocomplete="off">
+                    <input type="text" id="register-username" placeholder="Tên đăng nhập (4 - 20 ký tự)" required autocomplete="off" maxlength="20">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" required>
+                    <input type="password" id="register-password" placeholder="Mật khẩu (6 - 50 ký tự)" required maxlength="50">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-circle-check"></i>
-                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required>
+                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required maxlength="50">
                 </div>
                 <div class="auth-error" id="register-error"></div>
                 <button id="btn-register" class="btn-primary">Tạo Tài Khoản <i class="fa-solid fa-user-plus"></i></button>
