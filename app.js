@@ -246,6 +246,16 @@ const BOT_MESSAGES = {
 // --------------------------------------------------------------------------
 // 3. APPLICATION STATE MANAGEMENT
 // --------------------------------------------------------------------------
+// Module-scoped constant for game stage durations to prevent object allocations on every timer tick
+const STAGE_DURATIONS = {
+    'BETTING': 30,
+    'SHAKING': 3,
+    'BOWL_REVEAL': 1, // No countdown, just show 0
+    'REVEALING': 2,
+    'PAYOUT': 4,
+    'REST': 20
+};
+
 class GameController {
     constructor() {
         this.users = JSON.parse(localStorage.getItem('tx_users')) || [];
@@ -334,10 +344,13 @@ class GameController {
         this.dom.bowlPeekHint = document.getElementById('bowl-peek-hint');
         this.dom.restOverlay = document.getElementById('rest-overlay');
 
-        // Betting Board
+        // Betting Board & Chip Grids (Cached to avoid repetitive querySelector calls)
         this.dom.betXiu = document.getElementById('bet-area-xiu');
         this.dom.betTai = document.getElementById('bet-area-tai');
         this.dom.betBao = document.getElementById('bet-area-bao');
+        this.dom.chipsGridXiu = document.getElementById('chips-grid-xiu');
+        this.dom.chipsGridTai = document.getElementById('chips-grid-tai');
+        this.dom.chipsGridBao = document.getElementById('chips-grid-bao');
         this.dom.totalBetXiu = document.getElementById('total-bet-xiu');
         this.dom.totalBetTai = document.getElementById('total-bet-tai');
         this.dom.totalBetBao = document.getElementById('total-bet-bao');
@@ -1309,16 +1322,8 @@ class GameController {
     updateTimerUI() {
         this.dom.timerNumber.textContent = this.timer;
         
-        // Map stage to total duration
-        const stageDurations = {
-            'BETTING': 30,
-            'SHAKING': 3,
-            'BOWL_REVEAL': 1, // No countdown, just show 0
-            'REVEALING': 2,
-            'PAYOUT': 4,
-            'REST': 20
-        };
-        const totalDuration = stageDurations[this.gameStage] || 1;
+        // Use pre-allocated STAGE_DURATIONS constant to avoid object creation every second
+        const totalDuration = STAGE_DURATIONS[this.gameStage] || 1;
         const progressPercent = this.timer / totalDuration;
         const circumference = 283; // 2 * PI * 45
         const offset = circumference * (1 - progressPercent);
@@ -1451,10 +1456,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Clear chip visuals inside board grids
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Clear chip visuals inside board grids using cached DOM references
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
     }
 
     // --------------------------------------------------------------------------
@@ -1687,10 +1692,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Remove only user chips (we can identify them, but simpler to clear and let bots redraw, or just clear HTML of user chips. Let's clear and rebuild bot chips)
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Clear chips using cached DOM references
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
         
         this.updateBoardTotalBetsUI();
         audioSynth.playTone(300, 'triangle', 0.15, 0.2); // clear sound effect
@@ -1770,12 +1775,13 @@ class GameController {
     }
 
     showFlyingChipAnimation(areaType, value) {
-        let areaNode;
-        if (areaType === 'xiu') areaNode = this.dom.betXiu;
-        else if (areaType === 'tai') areaNode = this.dom.betTai;
-        else areaNode = this.dom.betBao;
+        // Use cached chip grid DOM elements to avoid frequent querySelector searches on bot chip placement
+        let gridNode;
+        if (areaType === 'xiu') gridNode = this.dom.chipsGridXiu;
+        else if (areaType === 'tai') gridNode = this.dom.chipsGridTai;
+        else gridNode = this.dom.chipsGridBao;
 
-        const gridNode = areaNode.querySelector('.chips-container-grid');
+        if (!gridNode) return;
         
         // Chip color styles
         let color = '#f59e0b';
@@ -1943,12 +1949,16 @@ class GameController {
     }
 
     generateInitialChatLogs() {
-        // Prefill some messages so chat isn't blank
+        // Prefill some messages so chat isn't blank (defer scrolling during batch insert to avoid forced layout reflows)
         for (let i = 0; i < 6; i++) {
             const bot = BOTS[Math.floor(Math.random() * BOTS.length)];
             const msgs = BOT_MESSAGES.BETTING;
             const text = msgs[Math.floor(Math.random() * msgs.length)];
-            this.addChatMessage(bot.name, text, bot.vip, false);
+            this.addChatMessage(bot.name, text, bot.vip, false, false);
+        }
+        // Single scroll to bottom after initial batch population
+        if (this.dom.chatMessages) {
+            this.dom.chatMessages.scrollTop = this.dom.chatMessages.scrollHeight;
         }
 
         // Set interval for ongoing chat comments
@@ -2004,7 +2014,7 @@ class GameController {
         }, 1500 + Math.random() * 1000);
     }
 
-    addChatMessage(sender, message, badgeInfo = null, isUser = false) {
+    addChatMessage(sender, message, badgeInfo = null, isUser = false, shouldScroll = true) {
         const msgItem = document.createElement('div');
         msgItem.className = 'chat-message-item';
         if (isUser) msgItem.classList.add('self-msg');
@@ -2061,8 +2071,10 @@ class GameController {
 
         this.dom.chatMessages.appendChild(msgItem);
 
-        // Scroll to bottom
-        this.dom.chatMessages.scrollTop = this.dom.chatMessages.scrollHeight;
+        // Scroll to bottom (optional to allow batch inserts without triggering reflows on every item)
+        if (shouldScroll) {
+            this.dom.chatMessages.scrollTop = this.dom.chatMessages.scrollHeight;
+        }
 
         // Cleanup messages if too many (keep last 50)
         if (this.dom.chatMessages.children.length > 50) {
