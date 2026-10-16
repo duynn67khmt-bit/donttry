@@ -443,10 +443,17 @@ class GameController {
         });
 
         // Quick login demo button
-        this.dom.btnAutologinDemo.addEventListener('click', () => {
+        const handleDemoClick = () => {
             this.dom.loginUsernameInput.value = 'demo';
             this.dom.loginPasswordInput.value = '123456';
             this.handleLogin();
+        };
+        this.dom.btnAutologinDemo.addEventListener('click', handleDemoClick);
+        this.dom.btnAutologinDemo.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleDemoClick();
+            }
         });
 
         // Form submits
@@ -471,10 +478,19 @@ class GameController {
             audioSynth.playChipSound();
         });
 
-        // Click Bet Areas
-        this.dom.betXiu.addEventListener('click', () => this.placeUserBet('xiu'));
-        this.dom.betTai.addEventListener('click', () => this.placeUserBet('tai'));
-        this.dom.betBao.addEventListener('click', () => this.placeUserBet('bao'));
+        // Click Bet Areas & Keyboard accessibility
+        const setupBetAreaKeyEvents = (el, betType) => {
+            el.addEventListener('click', () => this.placeUserBet(betType));
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.placeUserBet(betType);
+                }
+            });
+        };
+        setupBetAreaKeyEvents(this.dom.betXiu, 'xiu');
+        setupBetAreaKeyEvents(this.dom.betTai, 'tai');
+        setupBetAreaKeyEvents(this.dom.betBao, 'bao');
 
         // Bowl Drag (Kéo Bát) - Pointer events for free-drag reveal
         this.dom.diceCup.addEventListener('pointerdown', (e) => this.onBowlDragStart(e));
