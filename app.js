@@ -1036,8 +1036,9 @@ class GameController {
             return;
         }
 
-        if (username.length < 4) {
-            this.dom.registerError.textContent = 'Tên đăng nhập phải chứa ít nhất 4 ký tự.';
+        // Security: Validate username format and length to prevent DoS, local storage abuse, and injection.
+        if (username.length < 4 || username.length > 20 || !/^[a-z0-9_]+$/.test(username)) {
+            this.dom.registerError.textContent = 'Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch dưới (4-20 ký tự).';
             return;
         }
 
@@ -1609,6 +1610,8 @@ class GameController {
     // --------------------------------------------------------------------------
     placeUserBet(areaType) {
         if (this.gameStage !== 'BETTING') return;
+        // Security: Validate bet area type to prevent property injection or state corruption.
+        if (!['xiu', 'tai', 'bao'].includes(areaType)) return;
 
         const betAmount = this.activeChipValue;
         if (this.currentUser.balance < betAmount) {
@@ -1984,6 +1987,11 @@ class GameController {
     handleUserSendChatMessage() {
         const text = this.dom.chatInputMsg.value.trim();
         if (!text) return;
+        // Security: Limit chat message length to prevent DoS, buffer flooding, or UI breakdown.
+        if (text.length > 200) {
+            this.addChatMessage("Hệ Thống", "Tin nhắn quá dài (tối đa 200 ký tự).", "sys");
+            return;
+        }
 
         // Post user message
         this.addChatMessage(this.currentUser.username, text, "VIP 3 (Hội Viên)", true);
