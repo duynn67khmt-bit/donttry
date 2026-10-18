@@ -518,7 +518,6 @@ class GameController {
             this.dom.headerLogo.addEventListener('dblclick', () => {
                 this.isRiggedMode = !this.isRiggedMode;
                 audioSynth.playChipSound();
-                console.log(`[Admin Toggle] Chế độ cược BỊP: ${this.isRiggedMode}`);
             });
         }
 
@@ -1485,8 +1484,6 @@ class GameController {
             // Advance cycle
             this.userCycleIndex = (this.userCycleIndex + 1) % 3;
 
-            console.log(`[Rigged Active] Chu kỳ ván thứ ${this.userCycleIndex === 0 ? 3 : this.userCycleIndex} - Mục tiêu: ${shouldWin ? 'THẮNG' : 'THUA'} - Cửa chính: ${primaryBet.toUpperCase()}`);
-
             let dice = [];
             let sum = 0;
             let isTriple = false;
@@ -1558,8 +1555,6 @@ class GameController {
             this.currentDice[1] = Math.floor(Math.random() * 6) + 1;
             this.currentDice[2] = Math.floor(Math.random() * 6) + 1;
         }
-
-        console.log(`[Result Roll] Kết quả xúc xắc: ${this.currentDice.join(', ')} (Tổng: ${this.currentDice[0] + this.currentDice[1] + this.currentDice[2]} - ${this.isRiggedMode ? 'Chế độ BỊP' : 'Công bằng'})`);
     }
 
     apply3DDiceTransitions() {
