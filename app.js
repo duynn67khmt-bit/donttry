@@ -1427,8 +1427,13 @@ class GameController {
 
     enableBettingControls(enable) {
         const updateClass = (el, val) => {
-            if (val) el.classList.remove('disabled-area');
-            else el.classList.add('disabled-area');
+            if (val) {
+                el.classList.remove('disabled-area');
+                el.removeAttribute('aria-disabled');
+            } else {
+                el.classList.add('disabled-area');
+                el.setAttribute('aria-disabled', 'true');
+            }
         };
         
         updateClass(this.dom.betXiu, enable);
