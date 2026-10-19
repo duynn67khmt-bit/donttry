@@ -29,36 +29,36 @@
             <div id="login-form-wrapper" class="auth-form-wrapper">
                 <h2>ĐĂNG NHẬP</h2>
                 <div class="input-group">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="text" id="login-username" placeholder="Tên đăng nhập" required autocomplete="off">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    <input type="text" id="login-username" placeholder="Tên đăng nhập" aria-label="Tên đăng nhập" required autocomplete="off">
                 </div>
                 <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="Mật khẩu" required>
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    <input type="password" id="login-password" placeholder="Mật khẩu" aria-label="Mật khẩu" required>
                 </div>
-                <div class="auth-error" id="login-error"></div>
-                <button id="btn-login" class="btn-primary">Đăng Nhập <i class="fa-solid fa-right-to-bracket"></i></button>
-                <p class="auth-switch">Chưa có tài khoản? <span id="switch-to-register">Đăng ký ngay</span></p>
+                <div class="auth-error" id="login-error" role="alert" aria-live="polite"></div>
+                <button id="btn-login" class="btn-primary">Đăng Nhập <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i></button>
+                <p class="auth-switch">Chưa có tài khoản? <span id="switch-to-register" role="button" tabindex="0" aria-label="Chuyển sang form đăng ký ngay">Đăng ký ngay</span></p>
             </div>
 
             <!-- Register Form -->
             <div id="register-form-wrapper" class="auth-form-wrapper hidden">
                 <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
                 <div class="input-group">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" required autocomplete="off">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" aria-label="Tên đăng nhập" required autocomplete="off">
                 </div>
                 <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" required>
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" aria-label="Mật khẩu" required>
                 </div>
                 <div class="input-group">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required>
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" aria-label="Xác nhận mật khẩu" required>
                 </div>
-                <div class="auth-error" id="register-error"></div>
-                <button id="btn-register" class="btn-primary">Tạo Tài Khoản <i class="fa-solid fa-user-plus"></i></button>
-                <p class="auth-switch">Đã có tài khoản? <span id="switch-to-login">Quay lại đăng nhập</span></p>
+                <div class="auth-error" id="register-error" role="alert" aria-live="polite"></div>
+                <button id="btn-register" class="btn-primary">Tạo Tài Khoản <i class="fa-solid fa-user-plus" aria-hidden="true"></i></button>
+                <p class="auth-switch">Đã có tài khoản? <span id="switch-to-login" role="button" tabindex="0" aria-label="Quay lại form đăng nhập">Quay lại đăng nhập</span></p>
             </div>
 
             <!-- Quick Play / Demo Guide -->
@@ -99,11 +99,11 @@
                         <span class="stat-label">Số Dư Ví</span>
                         <span class="stat-value text-gold font-digital" id="user-balance">0đ</span>
                     </div>
-                    <button id="btn-open-deposit" class="deposit-header-btn" title="Nạp Tiền">
-                        <i class="fa-solid fa-circle-plus"></i> Nạp
+                    <button id="btn-open-deposit" class="deposit-header-btn" title="Nạp Tiền" aria-label="Nạp tiền vào tài khoản">
+                        <i class="fa-solid fa-circle-plus" aria-hidden="true"></i> Nạp
                     </button>
-                    <button id="btn-open-withdraw" class="withdraw-header-btn" title="Rút Tiền">
-                        <i class="fa-solid fa-circle-minus"></i> Rút
+                    <button id="btn-open-withdraw" class="withdraw-header-btn" title="Rút Tiền" aria-label="Rút tiền khỏi tài khoản">
+                        <i class="fa-solid fa-circle-minus" aria-hidden="true"></i> Rút
                     </button>
                 </div>
             </div>
@@ -136,7 +136,7 @@
                         <div class="timer-text font-digital" id="timer-number">30</div>
                     </div>
 
-                    <div class="game-status-banner" id="game-status-banner">
+                    <div class="game-status-banner" id="game-status-banner" role="status" aria-live="polite">
                         ĐANG ĐẶT CƯỢC...
                     </div>
 
@@ -540,7 +540,7 @@
                             <div class="spinner"></div>
                             <span>Đang kiểm tra thẻ trên hệ thống...</span>
                         </div>
-                        <div id="card-deposit-status" class="card-deposit-status"></div>
+                        <div id="card-deposit-status" class="card-deposit-status" role="alert" aria-live="polite"></div>
                     </div>
                 </div>
                 
@@ -657,7 +657,7 @@
                                 <div class="spinner"></div>
                                 <span>Đang liên kết với cổng thanh toán Visa/Mastercard...</span>
                             </div>
-                            <div id="visa-deposit-status" class="visa-deposit-status"></div>
+                            <div id="visa-deposit-status" class="visa-deposit-status" role="alert" aria-live="polite"></div>
                         </div>
                     </div>
                 </div>
@@ -717,7 +717,7 @@
                     <div class="spinner" style="border-top-color: var(--error); border-left-color: rgba(239, 68, 68, 0.2);"></div>
                     <span>Đang xử lý yêu cầu rút tiền...</span>
                 </div>
-                <div id="withdraw-status" class="card-deposit-status"></div>
+                <div id="withdraw-status" class="card-deposit-status" role="alert" aria-live="polite"></div>
             </div>
             
             <!-- WITHDRAWAL HISTORY LOGS -->
