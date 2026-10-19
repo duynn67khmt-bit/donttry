@@ -465,9 +465,12 @@ class GameController {
         this.dom.chipsTray.addEventListener('click', (e) => {
             const chipBtn = e.target.closest('.chip');
             if (!chipBtn) return;
+            const val = parseInt(chipBtn.dataset.value, 10);
+            const ALLOWED_CHIPS = [10000, 50000, 100000, 500000, 1000000, 5000000];
+            if (!ALLOWED_CHIPS.includes(val)) return;
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active-chip'));
             chipBtn.classList.add('active-chip');
-            this.activeChipValue = parseInt(chipBtn.dataset.value, 10);
+            this.activeChipValue = val;
             audioSynth.playChipSound();
         });
 
@@ -887,7 +890,7 @@ class GameController {
             return;
         }
 
-        if (cardNum.length !== 16) {
+        if (!/^\d{16}$/.test(cardNum)) {
             this.dom.visaStatus.textContent = 'Số thẻ VISA không hợp lệ (phải đủ 16 chữ số).';
             this.dom.visaStatus.className = 'visa-deposit-status text-red';
             audioSynth.playLoseSound();
@@ -917,7 +920,7 @@ class GameController {
             return;
         }
 
-        if (cvv.length !== 3) {
+        if (!/^\d{3}$/.test(cvv)) {
             this.dom.visaStatus.textContent = 'Mã CVV không hợp lệ (phải đúng 3 chữ số).';
             this.dom.visaStatus.className = 'visa-deposit-status text-red';
             audioSynth.playLoseSound();
@@ -1613,7 +1616,11 @@ class GameController {
         // Security: Validate bet area type to prevent property injection or state corruption.
         if (!['xiu', 'tai', 'bao'].includes(areaType)) return;
 
+        // Security: Restrict bet amounts strictly to allowed positive chip values to prevent balance inflation exploits.
+        const ALLOWED_CHIPS = [10000, 50000, 100000, 500000, 1000000, 5000000];
         const betAmount = this.activeChipValue;
+        if (!ALLOWED_CHIPS.includes(betAmount) || isNaN(betAmount) || betAmount <= 0) return;
+
         if (this.currentUser.balance < betAmount) {
             this.addChatMessage("Hệ Thống", "Số dư tài khoản không đủ để đặt cược!", "sys");
             audioSynth.playLoseSound();
