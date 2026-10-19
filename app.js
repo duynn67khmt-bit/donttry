@@ -350,6 +350,11 @@ class GameController {
         this.dom.userBetValTai = document.getElementById('user-bet-val-tai');
         this.dom.userBetValBao = document.getElementById('user-bet-val-bao');
         this.dom.chipsTray = document.querySelector('.chips-tray');
+
+        // Performance Optimization: Cache chip container grid elements to avoid querySelector lookups on every chip animation
+        this.dom.chipsGridXiu = this.dom.betXiu ? this.dom.betXiu.querySelector('.chips-container-grid') : null;
+        this.dom.chipsGridTai = this.dom.betTai ? this.dom.betTai.querySelector('.chips-container-grid') : null;
+        this.dom.chipsGridBao = this.dom.betBao ? this.dom.betBao.querySelector('.chips-container-grid') : null;
         
         // Bet Controls
         this.dom.btnBetClear = document.getElementById('btn-bet-clear');
@@ -1452,10 +1457,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Clear chip visuals inside board grids
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Clear chip visuals inside board grids using cached DOM elements
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
     }
 
     // --------------------------------------------------------------------------
@@ -1690,10 +1695,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Remove only user chips (we can identify them, but simpler to clear and let bots redraw, or just clear HTML of user chips. Let's clear and rebuild bot chips)
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Remove chip visuals using cached DOM elements
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
         
         this.updateBoardTotalBetsUI();
         audioSynth.playTone(300, 'triangle', 0.15, 0.2); // clear sound effect
@@ -1773,12 +1778,20 @@ class GameController {
     }
 
     showFlyingChipAnimation(areaType, value) {
-        let areaNode;
-        if (areaType === 'xiu') areaNode = this.dom.betXiu;
-        else if (areaType === 'tai') areaNode = this.dom.betTai;
-        else areaNode = this.dom.betBao;
+        // Performance Optimization: Use cached grid DOM node instead of querySelector on every animation
+        let gridNode;
+        if (areaType === 'xiu') gridNode = this.dom.chipsGridXiu;
+        else if (areaType === 'tai') gridNode = this.dom.chipsGridTai;
+        else gridNode = this.dom.chipsGridBao;
 
-        const gridNode = areaNode.querySelector('.chips-container-grid');
+        if (!gridNode) return;
+
+        // Performance Optimization: Cap maximum rendered chip elements (max 30) per betting area
+        // to prevent unneeded DOM node accumulation during heavy bot/user betting loops.
+        const MAX_CHIPS_PER_AREA = 30;
+        if (gridNode.children.length >= MAX_CHIPS_PER_AREA) {
+            gridNode.removeChild(gridNode.firstChild);
+        }
         
         // Chip color styles
         let color = '#f59e0b';
