@@ -338,6 +338,9 @@ class GameController {
         this.dom.betXiu = document.getElementById('bet-area-xiu');
         this.dom.betTai = document.getElementById('bet-area-tai');
         this.dom.betBao = document.getElementById('bet-area-bao');
+        this.dom.chipsGridXiu = this.dom.betXiu ? this.dom.betXiu.querySelector('.chips-container-grid') : null;
+        this.dom.chipsGridTai = this.dom.betTai ? this.dom.betTai.querySelector('.chips-container-grid') : null;
+        this.dom.chipsGridBao = this.dom.betBao ? this.dom.betBao.querySelector('.chips-container-grid') : null;
         this.dom.totalBetXiu = document.getElementById('total-bet-xiu');
         this.dom.totalBetTai = document.getElementById('total-bet-tai');
         this.dom.totalBetBao = document.getElementById('total-bet-bao');
@@ -1452,10 +1455,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Clear chip visuals inside board grids
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Clear chip visuals inside board grids (using cached DOM nodes)
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
     }
 
     // --------------------------------------------------------------------------
@@ -1586,20 +1589,25 @@ class GameController {
             diceNode.style.transform = `${baseTransform} rotateX(${randOffsetX}deg) rotateY(${randOffsetY}deg) rotateZ(${randOffsetZ}deg)`;
         };
 
-        // Give a fast spinning visual before applying results to simulate tumble rolling
-        [this.dom.dice1, this.dom.dice2, this.dom.dice3].forEach((diceNode, index) => {
-            const val = this.currentDice[index];
-            
-            // Simulate wild spin
+        const diceNodes = [this.dom.dice1, this.dom.dice2, this.dom.dice3];
+
+        // Optimization: Separate layout read/write phases to batch DOM updates and avoid layout thrashing across elements.
+        // Phase 1: Set initial wild spin transform styles without transitions
+        diceNodes.forEach((diceNode) => {
             diceNode.style.transition = 'none';
             const spinRotX = Math.random() * 720 + 360;
             const spinRotY = Math.random() * 720 + 360;
             diceNode.style.transform = `rotateX(${spinRotX}deg) rotateY(${spinRotY}deg)`;
-            
-            // Forces reflow
-            diceNode.offsetHeight;
-            
-            // Smoothly settle into final face rotation
+        });
+
+        // Phase 2: Single forced reflow for all dice nodes
+        if (diceNodes[0]) {
+            void diceNodes[0].offsetHeight;
+        }
+
+        // Phase 3: Set target transitions and final rotation transforms
+        diceNodes.forEach((diceNode, index) => {
+            const val = this.currentDice[index];
             diceNode.style.transition = 'transform 1.2s cubic-bezier(0.18, 0.89, 0.32, 1.15)';
             setDiceRotation(diceNode, val);
         });
@@ -1690,10 +1698,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Remove only user chips (we can identify them, but simpler to clear and let bots redraw, or just clear HTML of user chips. Let's clear and rebuild bot chips)
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Remove chip visuals (using cached DOM nodes)
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
         
         this.updateBoardTotalBetsUI();
         audioSynth.playTone(300, 'triangle', 0.15, 0.2); // clear sound effect
@@ -1773,12 +1781,12 @@ class GameController {
     }
 
     showFlyingChipAnimation(areaType, value) {
-        let areaNode;
-        if (areaType === 'xiu') areaNode = this.dom.betXiu;
-        else if (areaType === 'tai') areaNode = this.dom.betTai;
-        else areaNode = this.dom.betBao;
+        let gridNode;
+        if (areaType === 'xiu') gridNode = this.dom.chipsGridXiu;
+        else if (areaType === 'tai') gridNode = this.dom.chipsGridTai;
+        else gridNode = this.dom.chipsGridBao;
 
-        const gridNode = areaNode.querySelector('.chips-container-grid');
+        if (!gridNode) return;
         
         // Chip color styles
         let color = '#f59e0b';
@@ -2137,27 +2145,14 @@ class GameController {
         
         // Take LATEST 84 items to fill the bead plate
         const latestHistory = this.history.slice(-totalCells);
-        
-        const matrix = Array(rowsCount).fill(null).map(() => Array(colsCount).fill(null));
-        
-        let currentHistoryIndex = 0;
-        
-        for (let col = 0; col < colsCount; col++) {
-            for (let row = 0; row < rowsCount; row++) {
-                if (currentHistoryIndex < latestHistory.length) {
-                    matrix[row][col] = latestHistory[currentHistoryIndex];
-                    currentHistoryIndex++;
-                } else {
-                    break;
-                }
-            }
-        }
 
-        // Optimization: Use DocumentFragment to batch 84 cell DOM appends into 1 operation, preventing layout reflow thrashing
+        // Optimization: Directly compute column-major history index without allocating temporary 2D arrays on every render cycle.
+        // DocumentFragment batches 84 cell DOM appends into 1 operation, preventing layout reflow thrashing.
         const fragment = document.createDocumentFragment();
         for (let row = 0; row < rowsCount; row++) {
             for (let col = 0; col < colsCount; col++) {
-                const cellData = matrix[row][col];
+                const historyIdx = col * rowsCount + row;
+                const cellData = historyIdx < latestHistory.length ? latestHistory[historyIdx] : null;
                 const cell = document.createElement('div');
                 cell.className = 'bead-cell';
                 
