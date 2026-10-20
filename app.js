@@ -283,6 +283,10 @@ class GameController {
         this.isRiggedMode = true;
         this.userCycleIndex = 0;
         
+        // Cached Intl formatters for performance (reusing instances avoids costly constructor calls)
+        this.currencyFormatter = new Intl.NumberFormat('vi-VN');
+        this.numberFormatter = new Intl.NumberFormat('en-US');
+
         // DOM Nodes cache
         this.dom = {};
     }
@@ -2329,12 +2333,13 @@ class GameController {
         }
     }
 
+    // Performance optimization: reuse instantiated Intl.NumberFormat instances instead of re-creating them on every format call
     formatCurrency(val) {
-        return new Intl.NumberFormat('vi-VN').format(val);
+        return this.currencyFormatter.format(val);
     }
 
     formatNumber(val) {
-        return new Intl.NumberFormat('en-US').format(val);
+        return this.numberFormatter.format(val);
     }
 
     // --------------------------------------------------------------------------
