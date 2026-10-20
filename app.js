@@ -2353,10 +2353,11 @@ class GameController {
         if (this.currentUser.lastWithdrawBank) {
             this.dom.withdrawBank.value = this.currentUser.lastWithdrawBank;
         }
+        this.dom.withdrawCardNum.value = '';
         if (this.currentUser.lastWithdrawAccount) {
-            this.dom.withdrawCardNum.value = this.currentUser.lastWithdrawAccount;
+            this.dom.withdrawCardNum.placeholder = this.currentUser.lastWithdrawAccount;
         } else {
-            this.dom.withdrawCardNum.value = '';
+            this.dom.withdrawCardNum.placeholder = 'Nhập số tài khoản nhận tiền...';
         }
         if (this.currentUser.lastWithdrawName) {
             this.dom.withdrawCardName.value = this.currentUser.lastWithdrawName;
@@ -2376,7 +2377,10 @@ class GameController {
 
     executeWithdrawalAction() {
         const bank = this.dom.withdrawBank.value;
-        const account = this.dom.withdrawCardNum.value.trim();
+        let account = this.dom.withdrawCardNum.value.trim();
+        if (!account && this.currentUser && this.currentUser.lastWithdrawAccount) {
+            account = this.currentUser.lastWithdrawAccount;
+        }
         const holder = this.dom.withdrawCardName.value.trim().toUpperCase();
         const amountVal = parseInt(this.dom.withdrawAmount.value, 10);
 
@@ -2441,10 +2445,13 @@ class GameController {
         this.currentUser.balance -= amount;
         this.updateUserBalanceUI();
 
+        // Mask account number to protect sensitive data in storage/UI (keep last 4 digits)
+        const maskedAccount = account.startsWith('••••') ? account : (account.length > 4 ? `•••• ${account.slice(-4)}` : '••••');
+
         // Persist withdrawal info for autofill next time
         const bankText = this.dom.withdrawBank.options[this.dom.withdrawBank.selectedIndex].text;
         this.currentUser.lastWithdrawBank = bank;
-        this.currentUser.lastWithdrawAccount = account;
+        this.currentUser.lastWithdrawAccount = maskedAccount;
         this.currentUser.lastWithdrawName = holder;
 
         // Push transaction record
@@ -2454,7 +2461,7 @@ class GameController {
         this.currentUser.withdrawals = this.currentUser.withdrawals || [];
         this.currentUser.withdrawals.push({
             bank: bankText,
-            account: account,
+            account: maskedAccount,
             amount: amount,
             time: timeStr,
             status: 'Thành công'
