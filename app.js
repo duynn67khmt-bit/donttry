@@ -443,10 +443,17 @@ class GameController {
         });
 
         // Quick login demo button
-        this.dom.btnAutologinDemo.addEventListener('click', () => {
+        const handleDemoClick = () => {
             this.dom.loginUsernameInput.value = 'demo';
             this.dom.loginPasswordInput.value = '123456';
             this.handleLogin();
+        };
+        this.dom.btnAutologinDemo.addEventListener('click', handleDemoClick);
+        this.dom.btnAutologinDemo.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleDemoClick();
+            }
         });
 
         // Form submits
@@ -471,10 +478,25 @@ class GameController {
             audioSynth.playChipSound();
         });
 
-        // Click Bet Areas
+        // Click and Keyboard Bet Areas
         this.dom.betXiu.addEventListener('click', () => this.placeUserBet('xiu'));
         this.dom.betTai.addEventListener('click', () => this.placeUserBet('tai'));
         this.dom.betBao.addEventListener('click', () => this.placeUserBet('bao'));
+
+        [
+            { el: this.dom.betXiu, type: 'xiu' },
+            { el: this.dom.betTai, type: 'tai' },
+            { el: this.dom.betBao, type: 'bao' }
+        ].forEach(({ el, type }) => {
+            if (el) {
+                el.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.placeUserBet(type);
+                    }
+                });
+            }
+        });
 
         // Bowl Drag (Kéo Bát) - Pointer events for free-drag reveal
         this.dom.diceCup.addEventListener('pointerdown', (e) => this.onBowlDragStart(e));
@@ -1427,8 +1449,13 @@ class GameController {
 
     enableBettingControls(enable) {
         const updateClass = (el, val) => {
-            if (val) el.classList.remove('disabled-area');
-            else el.classList.add('disabled-area');
+            if (val) {
+                el.classList.remove('disabled-area');
+                el.setAttribute('aria-disabled', 'false');
+            } else {
+                el.classList.add('disabled-area');
+                el.setAttribute('aria-disabled', 'true');
+            }
         };
         
         updateClass(this.dom.betXiu, enable);
