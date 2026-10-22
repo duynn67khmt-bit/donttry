@@ -442,12 +442,25 @@ class GameController {
             this.dom.registerError.textContent = '';
         });
 
+        // Helper for keyboard accessibility on custom interactive controls
+        const handleKeyboardActivation = (el, action) => {
+            if (!el) return;
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    action();
+                }
+            });
+        };
+
         // Quick login demo button
-        this.dom.btnAutologinDemo.addEventListener('click', () => {
+        const triggerDemoLogin = () => {
             this.dom.loginUsernameInput.value = 'demo';
             this.dom.loginPasswordInput.value = '123456';
             this.handleLogin();
-        });
+        };
+        this.dom.btnAutologinDemo.addEventListener('click', triggerDemoLogin);
+        handleKeyboardActivation(this.dom.btnAutologinDemo, triggerDemoLogin);
 
         // Form submits
         this.dom.btnLogin.addEventListener('click', () => this.handleLogin());
@@ -471,10 +484,13 @@ class GameController {
             audioSynth.playChipSound();
         });
 
-        // Click Bet Areas
+        // Click & Keyboard Bet Areas
         this.dom.betXiu.addEventListener('click', () => this.placeUserBet('xiu'));
         this.dom.betTai.addEventListener('click', () => this.placeUserBet('tai'));
         this.dom.betBao.addEventListener('click', () => this.placeUserBet('bao'));
+        handleKeyboardActivation(this.dom.betXiu, () => this.placeUserBet('xiu'));
+        handleKeyboardActivation(this.dom.betTai, () => this.placeUserBet('tai'));
+        handleKeyboardActivation(this.dom.betBao, () => this.placeUserBet('bao'));
 
         // Bowl Drag (Kéo Bát) - Pointer events for free-drag reveal
         this.dom.diceCup.addEventListener('pointerdown', (e) => this.onBowlDragStart(e));
