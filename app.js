@@ -181,6 +181,10 @@ class AudioSynth {
 
 const audioSynth = new AudioSynth();
 
+// Optimization: Reusable Intl.NumberFormat instances to prevent GC thrashing & continuous object allocations in hot loops
+const viCurrencyFormatter = new Intl.NumberFormat('vi-VN');
+const usNumberFormatter = new Intl.NumberFormat('en-US');
+
 // --------------------------------------------------------------------------
 // 2. SIMULATED BOTS DATA & DICTIONARY
 // --------------------------------------------------------------------------
@@ -350,6 +354,10 @@ class GameController {
         this.dom.userBetValTai = document.getElementById('user-bet-val-tai');
         this.dom.userBetValBao = document.getElementById('user-bet-val-bao');
         this.dom.chipsTray = document.querySelector('.chips-tray');
+        // Optimization: Cache chip container grid nodes to avoid repeated querySelector traversals
+        this.dom.chipsGridXiu = this.dom.betXiu.querySelector('.chips-container-grid');
+        this.dom.chipsGridTai = this.dom.betTai.querySelector('.chips-container-grid');
+        this.dom.chipsGridBao = this.dom.betBao.querySelector('.chips-container-grid');
         
         // Bet Controls
         this.dom.btnBetClear = document.getElementById('btn-bet-clear');
@@ -1452,10 +1460,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Clear chip visuals inside board grids
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Clear chip visuals inside board grids using cached DOM references
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
     }
 
     // --------------------------------------------------------------------------
@@ -1690,10 +1698,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Remove only user chips (we can identify them, but simpler to clear and let bots redraw, or just clear HTML of user chips. Let's clear and rebuild bot chips)
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Clear chip visuals inside board grids using cached DOM references
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
         
         this.updateBoardTotalBetsUI();
         audioSynth.playTone(300, 'triangle', 0.15, 0.2); // clear sound effect
@@ -1773,12 +1781,12 @@ class GameController {
     }
 
     showFlyingChipAnimation(areaType, value) {
-        let areaNode;
-        if (areaType === 'xiu') areaNode = this.dom.betXiu;
-        else if (areaType === 'tai') areaNode = this.dom.betTai;
-        else areaNode = this.dom.betBao;
+        let gridNode;
+        if (areaType === 'xiu') gridNode = this.dom.chipsGridXiu;
+        else if (areaType === 'tai') gridNode = this.dom.chipsGridTai;
+        else gridNode = this.dom.chipsGridBao;
 
-        const gridNode = areaNode.querySelector('.chips-container-grid');
+        if (!gridNode) return;
         
         // Chip color styles
         let color = '#f59e0b';
@@ -2330,11 +2338,11 @@ class GameController {
     }
 
     formatCurrency(val) {
-        return new Intl.NumberFormat('vi-VN').format(val);
+        return viCurrencyFormatter.format(val);
     }
 
     formatNumber(val) {
-        return new Intl.NumberFormat('en-US').format(val);
+        return usNumberFormatter.format(val);
     }
 
     // --------------------------------------------------------------------------
