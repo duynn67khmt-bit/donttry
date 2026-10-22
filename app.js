@@ -1613,7 +1613,13 @@ class GameController {
         // Security: Validate bet area type to prevent property injection or state corruption.
         if (!['xiu', 'tai', 'bao'].includes(areaType)) return;
 
-        const betAmount = this.activeChipValue;
+        // Security: Validate active chip value to prevent negative bets or invalid chip amounts.
+        const ALLOWED_CHIPS = [10000, 50000, 100000, 500000, 1000000, 5000000];
+        const betAmount = Number(this.activeChipValue);
+        if (!Number.isInteger(betAmount) || betAmount <= 0 || !ALLOWED_CHIPS.includes(betAmount)) {
+            return;
+        }
+
         if (this.currentUser.balance < betAmount) {
             this.addChatMessage("Hệ Thống", "Số dư tài khoản không đủ để đặt cược!", "sys");
             audioSynth.playLoseSound();
