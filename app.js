@@ -668,12 +668,22 @@ class GameController {
         window.addEventListener('keydown', initAudio, { once: false });
     }
 
-    initDemoAccount() {
+    // Security: Hash password using SHA-256 via Web Crypto API
+    async hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async initDemoAccount() {
         const demoExists = this.users.find(u => u.username === 'demo');
         if (!demoExists) {
+            const hashedPassword = await this.hashPassword('123456');
             this.users.push({
                 username: 'demo',
-                password: '123456',
+                password: hashedPassword,
                 balance: 100000000, // 100 million
                 history: []
             });
@@ -997,7 +1007,7 @@ class GameController {
     // --------------------------------------------------------------------------
     // 4. USER AUTHENTICATION HANDLERS
     // --------------------------------------------------------------------------
-    handleLogin() {
+    async handleLogin() {
         const username = this.dom.loginUsernameInput.value.trim().toLowerCase();
         const password = this.dom.loginPasswordInput.value;
 
@@ -1006,7 +1016,19 @@ class GameController {
             return;
         }
 
-        const user = this.users.find(u => u.username === username && u.password === password);
+        const hashedPassword = await this.hashPassword(password);
+        let user = this.users.find(u => u.username === username && u.password === hashedPassword);
+
+        // Backward compatibility: Auto-migrate legacy unhashed passwords to hashed
+        if (!user) {
+            const legacyUser = this.users.find(u => u.username === username && u.password === password);
+            if (legacyUser) {
+                legacyUser.password = hashedPassword;
+                this.saveUsersToLocalStorage();
+                user = legacyUser;
+            }
+        }
+
         if (!user) {
             this.dom.loginError.textContent = 'Tên đăng nhập hoặc mật khẩu không chính xác.';
             return;
@@ -1026,7 +1048,7 @@ class GameController {
         this.showMainGameScreen();
     }
 
-    handleRegister() {
+    async handleRegister() {
         const username = this.dom.registerUsernameInput.value.trim().toLowerCase();
         const password = this.dom.registerPasswordInput.value;
         const confirmPass = this.dom.registerConfirmPasswordInput.value;
@@ -1058,10 +1080,13 @@ class GameController {
             return;
         }
 
+        // Security: Store hashed password instead of plaintext to protect stored user credentials
+        const hashedPassword = await this.hashPassword(password);
+
         // Create user
         const newUser = {
             username: username,
-            password: password,
+            password: hashedPassword,
             balance: 50000000, // 50 million initial
             history: []
         };
