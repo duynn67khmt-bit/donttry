@@ -431,22 +431,45 @@ class GameController {
 
     bindEvents() {
         // Switch between Auth Forms
-        this.dom.btnToRegister.addEventListener('click', () => {
+        const switchToRegister = () => {
             this.dom.loginWrapper.classList.add('hidden');
             this.dom.registerWrapper.classList.remove('hidden');
             this.dom.loginError.textContent = '';
-        });
-        this.dom.btnToLogin.addEventListener('click', () => {
+        };
+        const switchToLogin = () => {
             this.dom.registerWrapper.classList.add('hidden');
             this.dom.loginWrapper.classList.remove('hidden');
             this.dom.registerError.textContent = '';
-        });
-
-        // Quick login demo button
-        this.dom.btnAutologinDemo.addEventListener('click', () => {
+        };
+        const handleDemoLogin = () => {
             this.dom.loginUsernameInput.value = 'demo';
             this.dom.loginPasswordInput.value = '123456';
             this.handleLogin();
+        };
+
+        this.dom.btnToRegister.addEventListener('click', switchToRegister);
+        this.dom.btnToRegister.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                switchToRegister();
+            }
+        });
+
+        this.dom.btnToLogin.addEventListener('click', switchToLogin);
+        this.dom.btnToLogin.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                switchToLogin();
+            }
+        });
+
+        // Quick login demo button
+        this.dom.btnAutologinDemo.addEventListener('click', handleDemoLogin);
+        this.dom.btnAutologinDemo.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleDemoLogin();
+            }
         });
 
         // Form submits
