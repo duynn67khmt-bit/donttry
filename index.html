@@ -64,11 +64,11 @@
             <!-- Quick Play / Demo Guide -->
             <div class="demo-box">
                 <h3>Trải nghiệm nhanh với tài khoản Demo:</h3>
-                <div class="demo-credentials" id="demo-account-btn" title="Click để tự động nhập tài khoản Demo">
+                <div class="demo-credentials" id="demo-account-btn" title="Click để tự động nhập tài khoản Demo" role="button" tabindex="0" aria-label="Đăng nhập tự động với tài khoản Demo">
                     <div>Tên: <strong class="gold-text">demo</strong></div>
                     <div>Mật khẩu: <strong class="gold-text">123456</strong></div>
                 </div>
-                <p class="demo-tip">Click vào khung trên để tự động đăng nhập nhanh!</p>
+                <p class="demo-tip">Click hoặc nhấn Enter vào khung trên để tự động đăng nhập nhanh!</p>
             </div>
         </div>
     </div>
@@ -442,10 +442,10 @@
     </div>
 
     <!-- DEPOSIT MODAL -->
-    <div id="deposit-modal" class="deposit-modal hidden">
+    <div id="deposit-modal" class="deposit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="deposit-modal-title">
         <div class="deposit-container glass-panel">
             <div class="deposit-modal-header">
-                <h2><i class="fa-solid fa-wallet text-gold"></i> NẠP TIỀN TÀI KHOẢN</h2>
+                <h2 id="deposit-modal-title"><i class="fa-solid fa-wallet text-gold"></i> NẠP TIỀN TÀI KHOẢN</h2>
                 <button id="btn-close-deposit" class="btn-close-modal" aria-label="Đóng bảng nạp tiền"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
@@ -674,10 +674,10 @@
     </div>
 
     <!-- WITHDRAW MODAL -->
-    <div id="withdraw-modal" class="deposit-modal hidden">
+    <div id="withdraw-modal" class="deposit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="withdraw-modal-title">
         <div class="deposit-container glass-panel">
             <div class="deposit-modal-header">
-                <h2><i class="fa-solid fa-money-bill-transfer text-red"></i> RÚT TIỀN TÀI KHOẢN</h2>
+                <h2 id="withdraw-modal-title"><i class="fa-solid fa-money-bill-transfer text-red"></i> RÚT TIỀN TÀI KHOẢN</h2>
                 <button id="btn-close-withdraw" class="btn-close-modal" aria-label="Đóng bảng rút tiền"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
