@@ -248,7 +248,14 @@ const BOT_MESSAGES = {
 // --------------------------------------------------------------------------
 class GameController {
     constructor() {
-        this.users = JSON.parse(localStorage.getItem('tx_users')) || [];
+        try {
+            const rawUsers = localStorage.getItem('tx_users');
+            const parsedUsers = rawUsers ? JSON.parse(rawUsers) : null;
+            this.users = Array.isArray(parsedUsers) ? parsedUsers : [];
+        } catch (e) {
+            console.error("Failed to parse users data from storage:", e);
+            this.users = [];
+        }
         this.activeUsername = localStorage.getItem('tx_active_user') || null;
         this.currentUser = null;
 
@@ -465,9 +472,11 @@ class GameController {
         this.dom.chipsTray.addEventListener('click', (e) => {
             const chipBtn = e.target.closest('.chip');
             if (!chipBtn) return;
+            const parsedVal = parseInt(chipBtn.dataset.value, 10);
+            if (!Number.isFinite(parsedVal) || parsedVal <= 0) return;
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active-chip'));
             chipBtn.classList.add('active-chip');
-            this.activeChipValue = parseInt(chipBtn.dataset.value, 10);
+            this.activeChipValue = parsedVal;
             audioSynth.playChipSound();
         });
 
@@ -796,6 +805,7 @@ class GameController {
 
     executeDeposit(amount, method) {
         if (!this.currentUser) return;
+        if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) return;
 
         // Update balance
         this.currentUser.balance += amount;
@@ -2436,6 +2446,7 @@ class GameController {
 
     executeWithdraw(amount, bank, account, holder) {
         if (!this.currentUser) return;
+        if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) return;
 
         // Deduct balance
         this.currentUser.balance -= amount;
