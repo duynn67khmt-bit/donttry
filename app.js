@@ -266,6 +266,11 @@ class GameController {
         this.dragStartY = 0;
         this.dragOffsetX = 0;
         this.dragOffsetY = 0;
+        this.isBowlDragOverThreshold = false; // Performance optimization: state flag to prevent DOM thrashing on statusBanner during drag
+
+        // Caching Intl.NumberFormat formatters to avoid expensive instantiation during high-frequency calls
+        this.currencyFormatter = new Intl.NumberFormat('vi-VN');
+        this.numberFormatter = new Intl.NumberFormat('en-US');
 
         // Current round states
         this.currentDice = [1, 1, 1];
@@ -351,6 +356,11 @@ class GameController {
         this.dom.userBetValBao = document.getElementById('user-bet-val-bao');
         this.dom.chipsTray = document.querySelector('.chips-tray');
         
+        // Chip grid containers (cached to avoid repeated querySelector calls)
+        this.dom.chipsGridXiu = document.getElementById('chips-grid-xiu');
+        this.dom.chipsGridTai = document.getElementById('chips-grid-tai');
+        this.dom.chipsGridBao = document.getElementById('chips-grid-bao');
+
         // Bet Controls
         this.dom.btnBetClear = document.getElementById('btn-bet-clear');
         this.dom.btnBetDouble = document.getElementById('btn-bet-double');
@@ -1358,6 +1368,7 @@ class GameController {
         this.dragStartY = e.clientY;
         this.dragOffsetX = 0;
         this.dragOffsetY = 0;
+        this.isBowlDragOverThreshold = false;
 
         this.dom.diceCup.classList.add('dragging');
         this.dom.diceCup.setPointerCapture(e.pointerId);
@@ -1383,11 +1394,15 @@ class GameController {
         // Apply transform: translate + rotate based on drag direction (Keep opacity fully opaque)
         this.dom.diceCup.style.transform = `translate(${this.dragOffsetX}px, ${this.dragOffsetY}px) rotate(${tiltDeg * Math.sign(this.dragOffsetX)}deg)`;
 
-        // Update status text based on drag distance
-        if (distance > 50) {
-            this.dom.statusBanner.innerHTML = '<span class="text-gold">🔥 THẢ ĐỂ MỞ BÁT!</span>';
-        } else {
-            this.dom.statusBanner.innerHTML = '<span class="text-gold">🖐️ KÉO BÁT ĐỂ SOI XÚC XẮC</span>';
+        // Optimization: Guard statusBanner DOM innerHTML writes to only trigger when crossing the 50px threshold boundary
+        const isOver = distance > 50;
+        if (isOver !== this.isBowlDragOverThreshold) {
+            this.isBowlDragOverThreshold = isOver;
+            if (isOver) {
+                this.dom.statusBanner.innerHTML = '<span class="text-gold">🔥 THẢ ĐỂ MỞ BÁT!</span>';
+            } else {
+                this.dom.statusBanner.innerHTML = '<span class="text-gold">🖐️ KÉO BÁT ĐỂ SOI XÚC XẮC</span>';
+            }
         }
     }
 
@@ -1452,10 +1467,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Clear chip visuals inside board grids
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Clear chip visuals inside board grids using cached DOM nodes
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
     }
 
     // --------------------------------------------------------------------------
@@ -1690,10 +1705,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Remove only user chips (we can identify them, but simpler to clear and let bots redraw, or just clear HTML of user chips. Let's clear and rebuild bot chips)
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Remove only user chips using cached DOM nodes
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
         
         this.updateBoardTotalBetsUI();
         audioSynth.playTone(300, 'triangle', 0.15, 0.2); // clear sound effect
@@ -1773,12 +1788,10 @@ class GameController {
     }
 
     showFlyingChipAnimation(areaType, value) {
-        let areaNode;
-        if (areaType === 'xiu') areaNode = this.dom.betXiu;
-        else if (areaType === 'tai') areaNode = this.dom.betTai;
-        else areaNode = this.dom.betBao;
-
-        const gridNode = areaNode.querySelector('.chips-container-grid');
+        let gridNode;
+        if (areaType === 'xiu') gridNode = this.dom.chipsGridXiu || this.dom.betXiu.querySelector('.chips-container-grid');
+        else if (areaType === 'tai') gridNode = this.dom.chipsGridTai || this.dom.betTai.querySelector('.chips-container-grid');
+        else gridNode = this.dom.chipsGridBao || this.dom.betBao.querySelector('.chips-container-grid');
         
         // Chip color styles
         let color = '#f59e0b';
@@ -2330,11 +2343,13 @@ class GameController {
     }
 
     formatCurrency(val) {
-        return new Intl.NumberFormat('vi-VN').format(val);
+        // Optimization: Use cached Intl.NumberFormat instance to eliminate re-instantiation overhead on high-frequency formatting calls
+        return this.currencyFormatter.format(val);
     }
 
     formatNumber(val) {
-        return new Intl.NumberFormat('en-US').format(val);
+        // Optimization: Use cached Intl.NumberFormat instance
+        return this.numberFormatter.format(val);
     }
 
     // --------------------------------------------------------------------------
