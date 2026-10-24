@@ -442,11 +442,31 @@ class GameController {
             this.dom.registerError.textContent = '';
         });
 
-        // Quick login demo button
-        this.dom.btnAutologinDemo.addEventListener('click', () => {
+        // Quick login demo button (click & keyboard)
+        const triggerDemoLogin = () => {
             this.dom.loginUsernameInput.value = 'demo';
             this.dom.loginPasswordInput.value = '123456';
             this.handleLogin();
+        };
+        this.dom.btnAutologinDemo.addEventListener('click', triggerDemoLogin);
+        this.dom.btnAutologinDemo.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                triggerDemoLogin();
+            }
+        });
+
+        // Global keydown handler for Escape key closing active modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.dom.depositModal && !this.dom.depositModal.classList.contains('hidden')) {
+                    this.dom.depositModal.classList.add('hidden');
+                    audioSynth.playChipSound();
+                } else if (this.dom.withdrawModal && !this.dom.withdrawModal.classList.contains('hidden')) {
+                    this.dom.withdrawModal.classList.add('hidden');
+                    audioSynth.playChipSound();
+                }
+            }
         });
 
         // Form submits
