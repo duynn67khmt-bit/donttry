@@ -30,15 +30,15 @@
                 <h2>ĐĂNG NHẬP</h2>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="login-username" placeholder="Tên đăng nhập" required autocomplete="off">
+                    <input type="text" id="login-username" placeholder="Tên đăng nhập" aria-label="Tên đăng nhập" required autocomplete="off">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="Mật khẩu" required>
+                    <input type="password" id="login-password" placeholder="Mật khẩu" aria-label="Mật khẩu" required>
                 </div>
                 <div class="auth-error" id="login-error"></div>
                 <button id="btn-login" class="btn-primary">Đăng Nhập <i class="fa-solid fa-right-to-bracket"></i></button>
-                <p class="auth-switch">Chưa có tài khoản? <span id="switch-to-register">Đăng ký ngay</span></p>
+                <p class="auth-switch">Chưa có tài khoản? <span id="switch-to-register" role="button" tabindex="0" aria-label="Đăng ký ngay">Đăng ký ngay</span></p>
             </div>
 
             <!-- Register Form -->
@@ -46,25 +46,25 @@
                 <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" required autocomplete="off">
+                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" aria-label="Tên đăng nhập đăng ký" required autocomplete="off">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" required>
+                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" aria-label="Mật khẩu đăng ký" required>
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-circle-check"></i>
-                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required>
+                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" aria-label="Xác nhận mật khẩu" required>
                 </div>
                 <div class="auth-error" id="register-error"></div>
                 <button id="btn-register" class="btn-primary">Tạo Tài Khoản <i class="fa-solid fa-user-plus"></i></button>
-                <p class="auth-switch">Đã có tài khoản? <span id="switch-to-login">Quay lại đăng nhập</span></p>
+                <p class="auth-switch">Đã có tài khoản? <span id="switch-to-login" role="button" tabindex="0" aria-label="Quay lại đăng nhập">Quay lại đăng nhập</span></p>
             </div>
 
             <!-- Quick Play / Demo Guide -->
             <div class="demo-box">
                 <h3>Trải nghiệm nhanh với tài khoản Demo:</h3>
-                <div class="demo-credentials" id="demo-account-btn" title="Click để tự động nhập tài khoản Demo">
+                <div class="demo-credentials" id="demo-account-btn" role="button" tabindex="0" aria-label="Tự động nhập tài khoản Demo" title="Click để tự động nhập tài khoản Demo">
                     <div>Tên: <strong class="gold-text">demo</strong></div>
                     <div>Mật khẩu: <strong class="gold-text">123456</strong></div>
                 </div>
