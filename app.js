@@ -843,8 +843,9 @@ class GameController {
             return;
         }
 
-        if (serial.length < 6 || pin.length < 6) {
-            this.dom.cardStatus.textContent = 'Số Seri hoặc Mã Thẻ không hợp lệ (ít nhất 6 ký tự).';
+        // Security: Validate card serial & pin length bounds to prevent DoS and buffer/storage overflow
+        if (serial.length < 6 || serial.length > 30 || pin.length < 6 || pin.length > 30) {
+            this.dom.cardStatus.textContent = 'Số Seri và Mã Thẻ phải từ 6 đến 30 ký tự.';
             this.dom.cardStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
@@ -1042,8 +1043,9 @@ class GameController {
             return;
         }
 
-        if (password.length < 6) {
-            this.dom.registerError.textContent = 'Mật khẩu phải chứa ít nhất 6 ký tự.';
+        // Security: Limit password length to prevent DoS via excessive memory/processing
+        if (password.length < 6 || password.length > 100) {
+            this.dom.registerError.textContent = 'Mật khẩu phải từ 6 đến 100 ký tự.';
             return;
         }
 
@@ -2387,15 +2389,16 @@ class GameController {
             return;
         }
 
-        if (account.length < 5) {
-            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ.';
+        // Security: Validate withdrawal account and holder name length bounds to prevent DoS & storage abuse
+        if (account.length < 5 || account.length > 30) {
+            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ (5-30 ký tự).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
         }
 
-        if (holder.length < 3) {
-            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ.';
+        if (holder.length < 3 || holder.length > 50) {
+            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ (3-50 ký tự).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
