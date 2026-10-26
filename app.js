@@ -2,6 +2,10 @@
    TÀI XỈU PREMIUM - CORE APPLICATION SCRIPT
    ========================================================================== */
 
+// Reusable Intl formatters cached at module scope to prevent costly object instantiation on hot paths
+const currencyFormatter = new Intl.NumberFormat('vi-VN');
+const numberFormatter = new Intl.NumberFormat('en-US');
+
 // --------------------------------------------------------------------------
 // 1. WEB AUDIO API SYNTHESIZER CLASS
 // --------------------------------------------------------------------------
@@ -167,13 +171,15 @@ class AudioSynth {
 
     toggleMute() {
         this.isMuted = !this.isMuted;
-        const icon = document.getElementById('sound-icon');
-        if (this.isMuted) {
-            icon.className = 'fa-solid fa-volume-xmark text-muted';
-        } else {
-            icon.className = 'fa-solid fa-volume-high text-gold';
-            this.init(); // Init if not already initialized
-            this.playTone(440, 'sine', 0.1, 0.2); // Feedback sound
+        const icon = (typeof game !== 'undefined' && game.dom && game.dom.soundIcon) ? game.dom.soundIcon : document.getElementById('sound-icon');
+        if (icon) {
+            if (this.isMuted) {
+                icon.className = 'fa-solid fa-volume-xmark text-muted';
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-gold';
+                this.init(); // Init if not already initialized
+                this.playTone(440, 'sine', 0.1, 0.2); // Feedback sound
+            }
         }
         return this.isMuted;
     }
@@ -351,6 +357,12 @@ class GameController {
         this.dom.userBetValBao = document.getElementById('user-bet-val-bao');
         this.dom.chipsTray = document.querySelector('.chips-tray');
         
+        // Cache chip container grids to avoid redundant querySelector calls during high-frequency betting
+        this.dom.chipsGridXiu = this.dom.betXiu ? this.dom.betXiu.querySelector('.chips-container-grid') : null;
+        this.dom.chipsGridTai = this.dom.betTai ? this.dom.betTai.querySelector('.chips-container-grid') : null;
+        this.dom.chipsGridBao = this.dom.betBao ? this.dom.betBao.querySelector('.chips-container-grid') : null;
+        this.dom.soundIcon = document.getElementById('sound-icon');
+
         // Bet Controls
         this.dom.btnBetClear = document.getElementById('btn-bet-clear');
         this.dom.btnBetDouble = document.getElementById('btn-bet-double');
@@ -1452,10 +1464,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Clear chip visuals inside board grids
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Clear chip visuals inside board grids using cached DOM references
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
     }
 
     // --------------------------------------------------------------------------
@@ -1690,10 +1702,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Remove only user chips (we can identify them, but simpler to clear and let bots redraw, or just clear HTML of user chips. Let's clear and rebuild bot chips)
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Remove chip visuals inside board grids using cached DOM references
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
         
         this.updateBoardTotalBetsUI();
         audioSynth.playTone(300, 'triangle', 0.15, 0.2); // clear sound effect
@@ -1773,12 +1785,13 @@ class GameController {
     }
 
     showFlyingChipAnimation(areaType, value) {
-        let areaNode;
-        if (areaType === 'xiu') areaNode = this.dom.betXiu;
-        else if (areaType === 'tai') areaNode = this.dom.betTai;
-        else areaNode = this.dom.betBao;
+        // Optimization: Use cached chip grid DOM elements to avoid expensive querySelector lookups on hot path
+        let gridNode;
+        if (areaType === 'xiu') gridNode = this.dom.chipsGridXiu;
+        else if (areaType === 'tai') gridNode = this.dom.chipsGridTai;
+        else gridNode = this.dom.chipsGridBao;
 
-        const gridNode = areaNode.querySelector('.chips-container-grid');
+        if (!gridNode) return;
         
         // Chip color styles
         let color = '#f59e0b';
@@ -2069,13 +2082,13 @@ class GameController {
 
         this.dom.chatMessages.appendChild(msgItem);
 
-        // Scroll to bottom
-        this.dom.chatMessages.scrollTop = this.dom.chatMessages.scrollHeight;
-
-        // Cleanup messages if too many (keep last 50)
+        // Cleanup excess messages BEFORE calculating scroll position to prevent layout thrashing
         if (this.dom.chatMessages.children.length > 50) {
             this.dom.chatMessages.removeChild(this.dom.chatMessages.firstChild);
         }
+
+        // Scroll to bottom once DOM layout is finalized
+        this.dom.chatMessages.scrollTop = this.dom.chatMessages.scrollHeight;
     }
 
     // --------------------------------------------------------------------------
@@ -2330,11 +2343,13 @@ class GameController {
     }
 
     formatCurrency(val) {
-        return new Intl.NumberFormat('vi-VN').format(val);
+        // Optimization: Re-use cached Intl.NumberFormat instance to avoid frequent allocation on bot betting intervals
+        return currencyFormatter.format(val);
     }
 
     formatNumber(val) {
-        return new Intl.NumberFormat('en-US').format(val);
+        // Optimization: Re-use cached Intl.NumberFormat instance
+        return numberFormatter.format(val);
     }
 
     // --------------------------------------------------------------------------
