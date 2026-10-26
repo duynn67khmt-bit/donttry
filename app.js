@@ -2387,15 +2387,16 @@ class GameController {
             return;
         }
 
-        if (account.length < 5) {
-            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ.';
+        // Security: Input length limits to prevent DoS, local storage abuse, and buffer flooding.
+        if (account.length < 5 || account.length > 30) {
+            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ (5 - 30 ký tự).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
         }
 
-        if (holder.length < 3) {
-            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ.';
+        if (holder.length < 3 || holder.length > 50) {
+            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ (3 - 50 ký tự).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
