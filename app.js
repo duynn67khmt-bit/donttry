@@ -2472,8 +2472,11 @@ class GameController {
         audioSynth.playWinSound();
         this.renderWithdrawalHistory();
 
+        // Security: Escape bankText and account before formatting system chat message to prevent XSS
+        const safeBankText = this.escapeHtml(bankText);
+        const safeAccountPrefix = this.escapeHtml(account.slice(0, 3));
         // Push to Chat
-        this.addChatMessage("Hệ Thống", `Giao dịch rút tiền thành công! Tài khoản đã trừ -${this.formatCurrency(amount)}đ (Kênh: ${bankText}, STK: ${account.slice(0, 3)}***).`, "sys");
+        this.addChatMessage("Hệ Thống", `Giao dịch rút tiền thành công! Tài khoản đã trừ -${this.formatCurrency(amount)}đ (Kênh: ${safeBankText}, STK: ${safeAccountPrefix}***).`, "sys");
     }
 
     renderWithdrawalHistory() {
