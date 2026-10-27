@@ -471,10 +471,19 @@ class GameController {
             audioSynth.playChipSound();
         });
 
-        // Click Bet Areas
+        // Click and Keyboard Bet Areas
+        const handleBetKeydown = (e, area) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.placeUserBet(area);
+            }
+        };
         this.dom.betXiu.addEventListener('click', () => this.placeUserBet('xiu'));
+        this.dom.betXiu.addEventListener('keydown', (e) => handleBetKeydown(e, 'xiu'));
         this.dom.betTai.addEventListener('click', () => this.placeUserBet('tai'));
+        this.dom.betTai.addEventListener('keydown', (e) => handleBetKeydown(e, 'tai'));
         this.dom.betBao.addEventListener('click', () => this.placeUserBet('bao'));
+        this.dom.betBao.addEventListener('keydown', (e) => handleBetKeydown(e, 'bao'));
 
         // Bowl Drag (Kéo Bát) - Pointer events for free-drag reveal
         this.dom.diceCup.addEventListener('pointerdown', (e) => this.onBowlDragStart(e));
