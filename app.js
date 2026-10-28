@@ -843,8 +843,9 @@ class GameController {
             return;
         }
 
-        if (serial.length < 6 || pin.length < 6) {
-            this.dom.cardStatus.textContent = 'Số Seri hoặc Mã Thẻ không hợp lệ (ít nhất 6 ký tự).';
+        // Security: Input length and structure bounds validation to prevent DoS, memory pollution, or local storage bloating.
+        if (serial.length < 6 || pin.length < 6 || serial.length > 30 || pin.length > 30) {
+            this.dom.cardStatus.textContent = 'Số Seri hoặc Mã Thẻ không hợp lệ (từ 6 đến 30 ký tự).';
             this.dom.cardStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
@@ -2387,15 +2388,16 @@ class GameController {
             return;
         }
 
-        if (account.length < 5) {
-            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ.';
+        // Security: Input length validation to prevent UI manipulation or client-side DoS.
+        if (account.length < 5 || account.length > 30) {
+            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ (từ 5 đến 30 ký tự).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
         }
 
-        if (holder.length < 3) {
-            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ.';
+        if (holder.length < 3 || holder.length > 50) {
+            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ (từ 3 đến 50 ký tự).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
