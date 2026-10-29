@@ -30,11 +30,11 @@
                 <h2>ĐĂNG NHẬP</h2>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="login-username" placeholder="Tên đăng nhập" required autocomplete="off">
+                    <input type="text" id="login-username" placeholder="Tên đăng nhập" aria-label="Tên đăng nhập" required autocomplete="off">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="Mật khẩu" required>
+                    <input type="password" id="login-password" placeholder="Mật khẩu" aria-label="Mật khẩu" required>
                 </div>
                 <div class="auth-error" id="login-error"></div>
                 <button id="btn-login" class="btn-primary">Đăng Nhập <i class="fa-solid fa-right-to-bracket"></i></button>
@@ -46,15 +46,15 @@
                 <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" required autocomplete="off">
+                    <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 4 ký tự)" aria-label="Tên đăng nhập" required autocomplete="off">
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" required>
+                    <input type="password" id="register-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" aria-label="Mật khẩu" required>
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-circle-check"></i>
-                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" required>
+                    <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu" aria-label="Xác nhận mật khẩu" required>
                 </div>
                 <div class="auth-error" id="register-error"></div>
                 <button id="btn-register" class="btn-primary">Tạo Tài Khoản <i class="fa-solid fa-user-plus"></i></button>
@@ -442,10 +442,10 @@
     </div>
 
     <!-- DEPOSIT MODAL -->
-    <div id="deposit-modal" class="deposit-modal hidden">
+    <div id="deposit-modal" class="deposit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="deposit-modal-title">
         <div class="deposit-container glass-panel">
             <div class="deposit-modal-header">
-                <h2><i class="fa-solid fa-wallet text-gold"></i> NẠP TIỀN TÀI KHOẢN</h2>
+                <h2 id="deposit-modal-title"><i class="fa-solid fa-wallet text-gold"></i> NẠP TIỀN TÀI KHOẢN</h2>
                 <button id="btn-close-deposit" class="btn-close-modal" aria-label="Đóng bảng nạp tiền"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
@@ -674,10 +674,10 @@
     </div>
 
     <!-- WITHDRAW MODAL -->
-    <div id="withdraw-modal" class="deposit-modal hidden">
+    <div id="withdraw-modal" class="deposit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="withdraw-modal-title">
         <div class="deposit-container glass-panel">
             <div class="deposit-modal-header">
-                <h2><i class="fa-solid fa-money-bill-transfer text-red"></i> RÚT TIỀN TÀI KHOẢN</h2>
+                <h2 id="withdraw-modal-title"><i class="fa-solid fa-money-bill-transfer text-red"></i> RÚT TIỀN TÀI KHOẢN</h2>
                 <button id="btn-close-withdraw" class="btn-close-modal" aria-label="Đóng bảng rút tiền"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
@@ -731,10 +731,10 @@
     </div>
 
     <!-- Web Audio Permission / Init Banner (displayed overlay for first click) -->
-    <div id="audio-init-overlay" class="audio-init-overlay hidden">
+    <div id="audio-init-overlay" class="audio-init-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="audio-modal-title">
         <div class="audio-init-box glass-panel">
             <i class="fa-solid fa-music music-bounce"></i>
-            <h2>Kích hoạt âm thanh trò chơi?</h2>
+            <h2 id="audio-modal-title">Kích hoạt âm thanh trò chơi?</h2>
             <p>Trò chơi có hiệu ứng âm thanh 3D, nhạc nền và tiếng lắc xúc xắc sinh động. Vui lòng nhấn nút dưới đây để cấp quyền phát âm thanh.</p>
             <div class="audio-btn-row">
                 <button id="btn-audio-enable" class="btn-primary">Kích Hoạt Âm Thanh <i class="fa-solid fa-volume-high"></i></button>

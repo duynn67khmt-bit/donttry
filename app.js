@@ -656,6 +656,21 @@ class GameController {
                 this.executeWithdrawalAction();
             });
         }
+
+        // Global Escape Key listener to close active modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.dom.depositModal && !this.dom.depositModal.classList.contains('hidden')) {
+                    this.dom.depositModal.classList.add('hidden');
+                    audioSynth.playChipSound();
+                } else if (this.dom.withdrawModal && !this.dom.withdrawModal.classList.contains('hidden')) {
+                    this.dom.withdrawModal.classList.add('hidden');
+                    audioSynth.playChipSound();
+                } else if (this.dom.audioOverlay && !this.dom.audioOverlay.classList.contains('hidden')) {
+                    this.dom.audioOverlay.classList.add('hidden');
+                }
+            }
+        });
     }
 
     setupAudioTriggerOnFirstInteraction() {
