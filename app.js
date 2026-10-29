@@ -2,6 +2,10 @@
    TÀI XỈU PREMIUM - CORE APPLICATION SCRIPT
    ========================================================================== */
 
+// Cached Intl.NumberFormat instances to eliminate repetitive object creation overhead during high-frequency updates
+const currencyFormatter = new Intl.NumberFormat('vi-VN');
+const numberFormatter = new Intl.NumberFormat('en-US');
+
 // --------------------------------------------------------------------------
 // 1. WEB AUDIO API SYNTHESIZER CLASS
 // --------------------------------------------------------------------------
@@ -2330,11 +2334,13 @@ class GameController {
     }
 
     formatCurrency(val) {
-        return new Intl.NumberFormat('vi-VN').format(val);
+        // Optimization: Use cached Intl.NumberFormat instance to eliminate repetitive object creation overhead
+        return currencyFormatter.format(val);
     }
 
     formatNumber(val) {
-        return new Intl.NumberFormat('en-US').format(val);
+        // Optimization: Use cached Intl.NumberFormat instance to eliminate repetitive object creation overhead
+        return numberFormatter.format(val);
     }
 
     // --------------------------------------------------------------------------
