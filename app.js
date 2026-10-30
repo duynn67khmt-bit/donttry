@@ -248,7 +248,12 @@ const BOT_MESSAGES = {
 // --------------------------------------------------------------------------
 class GameController {
     constructor() {
-        this.users = JSON.parse(localStorage.getItem('tx_users')) || [];
+        try {
+            this.users = JSON.parse(localStorage.getItem('tx_users')) || [];
+        } catch (e) {
+            console.error('Failed to parse tx_users from localStorage:', e);
+            this.users = [];
+        }
         this.activeUsername = localStorage.getItem('tx_active_user') || null;
         this.currentUser = null;
 
@@ -1614,6 +1619,11 @@ class GameController {
         if (!['xiu', 'tai', 'bao'].includes(areaType)) return;
 
         const betAmount = this.activeChipValue;
+        // Security: Validate bet amount is a positive integer to prevent balance manipulation
+        if (!Number.isInteger(betAmount) || betAmount <= 0) {
+            return;
+        }
+
         if (this.currentUser.balance < betAmount) {
             this.addChatMessage("Hệ Thống", "Số dư tài khoản không đủ để đặt cược!", "sys");
             audioSynth.playLoseSound();
