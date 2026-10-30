@@ -351,6 +351,11 @@ class GameController {
         this.dom.userBetValBao = document.getElementById('user-bet-val-bao');
         this.dom.chipsTray = document.querySelector('.chips-tray');
         
+        // Chip Grids (Cached to prevent repeated querySelector DOM lookups during high-frequency bot betting)
+        this.dom.chipsGridXiu = document.getElementById('chips-grid-xiu');
+        this.dom.chipsGridTai = document.getElementById('chips-grid-tai');
+        this.dom.chipsGridBao = document.getElementById('chips-grid-bao');
+
         // Bet Controls
         this.dom.btnBetClear = document.getElementById('btn-bet-clear');
         this.dom.btnBetDouble = document.getElementById('btn-bet-double');
@@ -1452,10 +1457,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Clear chip visuals inside board grids
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Clear chip visuals inside board grids using cached DOM references
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
     }
 
     // --------------------------------------------------------------------------
@@ -1586,20 +1591,25 @@ class GameController {
             diceNode.style.transform = `${baseTransform} rotateX(${randOffsetX}deg) rotateY(${randOffsetY}deg) rotateZ(${randOffsetZ}deg)`;
         };
 
-        // Give a fast spinning visual before applying results to simulate tumble rolling
-        [this.dom.dice1, this.dom.dice2, this.dom.dice3].forEach((diceNode, index) => {
-            const val = this.currentDice[index];
-            
-            // Simulate wild spin
+        const diceNodes = [this.dom.dice1, this.dom.dice2, this.dom.dice3];
+
+        // Optimization: Batch style writes and reads to eliminate layout thrashing across dice elements
+        // 1. Batch Write: Apply wild spin styles to all dice without reading layout in between
+        diceNodes.forEach((diceNode) => {
+            if (!diceNode) return;
             diceNode.style.transition = 'none';
             const spinRotX = Math.random() * 720 + 360;
             const spinRotY = Math.random() * 720 + 360;
             diceNode.style.transform = `rotateX(${spinRotX}deg) rotateY(${spinRotY}deg)`;
-            
-            // Forces reflow
-            diceNode.offsetHeight;
-            
-            // Smoothly settle into final face rotation
+        });
+
+        // 2. Batch Read: Trigger a single layout reflow flush for the batch
+        if (diceNodes[0]) diceNodes[0].offsetHeight;
+
+        // 3. Batch Write: Apply transition and target face rotation
+        diceNodes.forEach((diceNode, index) => {
+            if (!diceNode) return;
+            const val = this.currentDice[index];
             diceNode.style.transition = 'transform 1.2s cubic-bezier(0.18, 0.89, 0.32, 1.15)';
             setDiceRotation(diceNode, val);
         });
@@ -1690,10 +1700,10 @@ class GameController {
         this.dom.userBetIndicatorTai.classList.add('hidden');
         this.dom.userBetIndicatorBao.classList.add('hidden');
 
-        // Remove only user chips (we can identify them, but simpler to clear and let bots redraw, or just clear HTML of user chips. Let's clear and rebuild bot chips)
-        this.dom.betXiu.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betTai.querySelector('.chips-container-grid').innerHTML = '';
-        this.dom.betBao.querySelector('.chips-container-grid').innerHTML = '';
+        // Remove only user chips using cached DOM references
+        if (this.dom.chipsGridXiu) this.dom.chipsGridXiu.innerHTML = '';
+        if (this.dom.chipsGridTai) this.dom.chipsGridTai.innerHTML = '';
+        if (this.dom.chipsGridBao) this.dom.chipsGridBao.innerHTML = '';
         
         this.updateBoardTotalBetsUI();
         audioSynth.playTone(300, 'triangle', 0.15, 0.2); // clear sound effect
@@ -1773,12 +1783,12 @@ class GameController {
     }
 
     showFlyingChipAnimation(areaType, value) {
-        let areaNode;
-        if (areaType === 'xiu') areaNode = this.dom.betXiu;
-        else if (areaType === 'tai') areaNode = this.dom.betTai;
-        else areaNode = this.dom.betBao;
+        let gridNode;
+        if (areaType === 'xiu') gridNode = this.dom.chipsGridXiu;
+        else if (areaType === 'tai') gridNode = this.dom.chipsGridTai;
+        else gridNode = this.dom.chipsGridBao;
 
-        const gridNode = areaNode.querySelector('.chips-container-grid');
+        if (!gridNode) return;
         
         // Chip color styles
         let color = '#f59e0b';
