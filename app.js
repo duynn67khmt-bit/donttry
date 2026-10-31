@@ -894,8 +894,9 @@ class GameController {
             return;
         }
 
-        if (cardHolder.length < 3) {
-            this.dom.visaStatus.textContent = 'Tên chủ thẻ không hợp lệ.';
+        // Security: Limit maximum length to prevent payload injection or buffer flooding
+        if (cardHolder.length < 3 || cardHolder.length > 50) {
+            this.dom.visaStatus.textContent = 'Tên chủ thẻ không hợp lệ (3-50 ký tự).';
             this.dom.visaStatus.className = 'visa-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
@@ -924,8 +925,9 @@ class GameController {
             return;
         }
 
-        if (amountVal < 10000) {
-            this.dom.visaStatus.textContent = 'Số tiền nạp tối thiểu là 10.000đ.';
+        // Security: Restrict deposit amount to positive safe integers within system limit
+        if (amountVal < 10000 || amountVal > 1000000000 || !Number.isSafeInteger(amountVal)) {
+            this.dom.visaStatus.textContent = 'Số tiền nạp không hợp lệ (từ 10.000đ đến 1.000.000.000đ).';
             this.dom.visaStatus.className = 'visa-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
@@ -2387,22 +2389,25 @@ class GameController {
             return;
         }
 
-        if (account.length < 5) {
-            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ.';
+        // Security: Validate account format and length (alphanumeric, 5-30 characters) to prevent injection
+        if (account.length < 5 || account.length > 30 || !/^[A-Za-z0-9]+$/.test(account)) {
+            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ (5-30 ký tự chữ và số).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
         }
 
-        if (holder.length < 3) {
-            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ.';
+        // Security: Validate account holder name format and length (letters, spaces, 3-50 chars)
+        if (holder.length < 3 || holder.length > 50 || !/^[A-Z\s]+$/.test(holder)) {
+            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ (3-50 ký tự chữ in hoa không dấu).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
         }
 
-        if (amountVal < 50000) {
-            this.dom.withdrawStatus.textContent = 'Số tiền rút tối thiểu là 50.000đ.';
+        // Security: Restrict withdrawal amount to positive safe integers within system limit
+        if (amountVal < 50000 || amountVal > 1000000000 || !Number.isSafeInteger(amountVal)) {
+            this.dom.withdrawStatus.textContent = 'Số tiền rút không hợp lệ (từ 50.000đ đến 1.000.000.000đ).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
