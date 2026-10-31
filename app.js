@@ -2329,12 +2329,19 @@ class GameController {
         }
     }
 
+    // Optimization: Cache and reuse Intl.NumberFormat instances.
+    // Instantiating `new Intl.NumberFormat` on every call inside tight betting loops,
+    // frequent bot updates, and UI renders is expensive (~80x slower).
+    // Reusing static formatters eliminates object allocation and locale resolution overhead.
+    static currencyFormatter = new Intl.NumberFormat('vi-VN');
+    static numberFormatter = new Intl.NumberFormat('en-US');
+
     formatCurrency(val) {
-        return new Intl.NumberFormat('vi-VN').format(val);
+        return GameController.currencyFormatter.format(val);
     }
 
     formatNumber(val) {
-        return new Intl.NumberFormat('en-US').format(val);
+        return GameController.numberFormatter.format(val);
     }
 
     // --------------------------------------------------------------------------
