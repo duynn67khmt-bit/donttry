@@ -998,6 +998,15 @@ class GameController {
     // 4. USER AUTHENTICATION HANDLERS
     // --------------------------------------------------------------------------
     handleLogin() {
+        // Security: Prevent brute-force credential stuffing attacks via rate limiting & lockout
+        const lockoutUntil = parseInt(sessionStorage.getItem('tx_login_lockout') || '0', 10);
+        const now = Date.now();
+        if (lockoutUntil > now) {
+            const remainingSecs = Math.ceil((lockoutUntil - now) / 1000);
+            this.dom.loginError.textContent = `Quá nhiều lần đăng nhập thất bại. Vui lòng thử lại sau ${remainingSecs} giây.`;
+            return;
+        }
+
         const username = this.dom.loginUsernameInput.value.trim().toLowerCase();
         const password = this.dom.loginPasswordInput.value;
 
@@ -1008,11 +1017,24 @@ class GameController {
 
         const user = this.users.find(u => u.username === username && u.password === password);
         if (!user) {
-            this.dom.loginError.textContent = 'Tên đăng nhập hoặc mật khẩu không chính xác.';
+            // Security: Enforce 30s lockout after 5 consecutive failed attempts
+            const failedAttempts = parseInt(sessionStorage.getItem('tx_failed_logins') || '0', 10) + 1;
+            if (failedAttempts >= 5) {
+                sessionStorage.setItem('tx_login_lockout', String(Date.now() + 30000));
+                sessionStorage.removeItem('tx_failed_logins');
+                this.dom.loginError.textContent = 'Quá nhiều lần đăng nhập không thành công. Vui lòng thử lại sau 30 giây.';
+            } else {
+                sessionStorage.setItem('tx_failed_logins', String(failedAttempts));
+                const remaining = 5 - failedAttempts;
+                this.dom.loginError.textContent = `Tên đăng nhập hoặc mật khẩu không chính xác. (Còn ${remaining} lần thử)`;
+            }
             return;
         }
 
-        // Login success
+        // Login success - reset rate limit counters
+        sessionStorage.removeItem('tx_failed_logins');
+        sessionStorage.removeItem('tx_login_lockout');
+
         this.currentUser = user;
         this.activeUsername = username;
         localStorage.setItem('tx_active_user', username);
