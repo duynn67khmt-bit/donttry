@@ -2349,14 +2349,15 @@ class GameController {
         this.dom.withdrawLoading.classList.add('hidden');
         this.dom.btnWithdrawSubmit.disabled = false;
 
-        // Autofill with last withdrawal information if available
+        // Autofill with last withdrawal bank/name if available (Keep account input empty to avoid shoulder surfing)
         if (this.currentUser.lastWithdrawBank) {
             this.dom.withdrawBank.value = this.currentUser.lastWithdrawBank;
         }
+        this.dom.withdrawCardNum.value = '';
         if (this.currentUser.lastWithdrawAccount) {
-            this.dom.withdrawCardNum.value = this.currentUser.lastWithdrawAccount;
+            this.dom.withdrawCardNum.placeholder = `Tài khoản trước: ${this.currentUser.lastWithdrawAccount}`;
         } else {
-            this.dom.withdrawCardNum.value = '';
+            this.dom.withdrawCardNum.placeholder = 'Nhập số tài khoản nhận tiền...';
         }
         if (this.currentUser.lastWithdrawName) {
             this.dom.withdrawCardName.value = this.currentUser.lastWithdrawName;
@@ -2441,10 +2442,11 @@ class GameController {
         this.currentUser.balance -= amount;
         this.updateUserBalanceUI();
 
-        // Persist withdrawal info for autofill next time
+        // Persist withdrawal info (Security: Mask account number to protect sensitive financial data in localStorage)
         const bankText = this.dom.withdrawBank.options[this.dom.withdrawBank.selectedIndex].text;
+        const maskedAccount = `•••• ${account.slice(-4)}`;
         this.currentUser.lastWithdrawBank = bank;
-        this.currentUser.lastWithdrawAccount = account;
+        this.currentUser.lastWithdrawAccount = maskedAccount;
         this.currentUser.lastWithdrawName = holder;
 
         // Push transaction record
