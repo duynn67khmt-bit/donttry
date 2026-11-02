@@ -7,3 +7,8 @@
 **Vulnerability:** Plaintext credit card Primary Account Numbers (PANs) stored in browser `localStorage` and pre-filled into input fields.
 **Learning:** Storing full card numbers in client-side storage exposes sensitive payment card data to XSS attacks and shoulder surfing.
 **Prevention:** Always mask sensitive payment data (e.g. keeping only last 4 digits) before persisting in `localStorage` or displaying on UI card previews, and keep input fields unpopulated.
+
+## 2023-10-19 - Masking Bank Account Numbers in Local Storage and Forms
+**Vulnerability:** User bank account and phone numbers were persisted in plaintext in `localStorage` under `lastWithdrawAccount` and autofilled into form input elements.
+**Learning:** Client-side withdrawal forms persisting full financial account numbers in unencrypted storage make user financial details susceptible to unauthorized extraction or observation via shoulder surfing.
+**Prevention:** Mask account numbers to only reveal the last 4 characters before storing in `localStorage` and keep input values unpopulated (relying on masked placeholders if necessary).
