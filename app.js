@@ -476,6 +476,17 @@ class GameController {
         this.dom.betTai.addEventListener('click', () => this.placeUserBet('tai'));
         this.dom.betBao.addEventListener('click', () => this.placeUserBet('bao'));
 
+        // Keyboard navigation & activation for Bet Areas (Enter / Space)
+        const handleBetKeydown = (e, areaType) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.placeUserBet(areaType);
+            }
+        };
+        this.dom.betXiu.addEventListener('keydown', (e) => handleBetKeydown(e, 'xiu'));
+        this.dom.betTai.addEventListener('keydown', (e) => handleBetKeydown(e, 'tai'));
+        this.dom.betBao.addEventListener('keydown', (e) => handleBetKeydown(e, 'bao'));
+
         // Bowl Drag (Kéo Bát) - Pointer events for free-drag reveal
         this.dom.diceCup.addEventListener('pointerdown', (e) => this.onBowlDragStart(e));
         document.addEventListener('pointermove', (e) => this.onBowlDragMove(e));
@@ -1427,8 +1438,15 @@ class GameController {
 
     enableBettingControls(enable) {
         const updateClass = (el, val) => {
-            if (val) el.classList.remove('disabled-area');
-            else el.classList.add('disabled-area');
+            if (val) {
+                el.classList.remove('disabled-area');
+                el.setAttribute('aria-disabled', 'false');
+                el.setAttribute('tabindex', '0');
+            } else {
+                el.classList.add('disabled-area');
+                el.setAttribute('aria-disabled', 'true');
+                el.setAttribute('tabindex', '-1');
+            }
         };
         
         updateClass(this.dom.betXiu, enable);
