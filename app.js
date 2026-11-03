@@ -998,6 +998,15 @@ class GameController {
     // 4. USER AUTHENTICATION HANDLERS
     // --------------------------------------------------------------------------
     handleLogin() {
+        // Security: Rate limiting to prevent brute-force attacks and credential stuffing
+        const lockUntil = parseInt(sessionStorage.getItem('tx_login_lock') || '0', 10);
+        const now = Date.now();
+        if (lockUntil > now) {
+            const waitSeconds = Math.ceil((lockUntil - now) / 1000);
+            this.dom.loginError.textContent = `Quá nhiều lần đăng nhập sai. Vui lòng thử lại sau ${waitSeconds} giây.`;
+            return;
+        }
+
         const username = this.dom.loginUsernameInput.value.trim().toLowerCase();
         const password = this.dom.loginPasswordInput.value;
 
@@ -1008,11 +1017,23 @@ class GameController {
 
         const user = this.users.find(u => u.username === username && u.password === password);
         if (!user) {
-            this.dom.loginError.textContent = 'Tên đăng nhập hoặc mật khẩu không chính xác.';
+            // Track failed attempts and lock out for 30 seconds after 5 consecutive failures
+            const attempts = parseInt(sessionStorage.getItem('tx_login_attempts') || '0', 10) + 1;
+            if (attempts >= 5) {
+                sessionStorage.setItem('tx_login_lock', (now + 30000).toString());
+                sessionStorage.removeItem('tx_login_attempts');
+                this.dom.loginError.textContent = 'Đăng nhập sai quá 5 lần. Tài khoản tạm khóa 30 giây.';
+            } else {
+                sessionStorage.setItem('tx_login_attempts', attempts.toString());
+                this.dom.loginError.textContent = `Tên đăng nhập hoặc mật khẩu không chính xác (còn ${5 - attempts} lần thử).`;
+            }
             return;
         }
 
-        // Login success
+        // Login success - clear rate limiting flags
+        sessionStorage.removeItem('tx_login_attempts');
+        sessionStorage.removeItem('tx_login_lock');
+
         this.currentUser = user;
         this.activeUsername = username;
         localStorage.setItem('tx_active_user', username);
