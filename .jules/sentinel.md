@@ -7,3 +7,8 @@
 **Vulnerability:** Plaintext credit card Primary Account Numbers (PANs) stored in browser `localStorage` and pre-filled into input fields.
 **Learning:** Storing full card numbers in client-side storage exposes sensitive payment card data to XSS attacks and shoulder surfing.
 **Prevention:** Always mask sensitive payment data (e.g. keeping only last 4 digits) before persisting in `localStorage` or displaying on UI card previews, and keep input fields unpopulated.
+
+## 2026-10-18 - Client-Side Login Throttling & Lockout
+**Vulnerability:** Unthrottled login handler allowed rapid automated password guessing and credential stuffing against accounts stored in `localStorage`.
+**Learning:** In client-side or offline-capable web applications where credentials are authenticated locally, attackers can execute rapid-fire brute-force dictionary attacks without rate limits.
+**Prevention:** Enforce attempt counters and timed lockouts via `sessionStorage` with user feedback on remaining attempts and lock durations.
