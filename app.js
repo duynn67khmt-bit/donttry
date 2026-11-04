@@ -998,6 +998,16 @@ class GameController {
     // 4. USER AUTHENTICATION HANDLERS
     // --------------------------------------------------------------------------
     handleLogin() {
+        // Security: Rate limiting to prevent brute-force and credential stuffing attacks
+        const now = Date.now();
+        const lockoutUntil = parseInt(sessionStorage.getItem('tx_lockout_until') || '0', 10);
+        if (now < lockoutUntil) {
+            const waitSec = Math.ceil((lockoutUntil - now) / 1000);
+            this.dom.loginError.textContent = `Quá nhiều lần thử thất bại. Vui lòng thử lại sau ${waitSec} giây.`;
+            audioSynth.playLoseSound();
+            return;
+        }
+
         const username = this.dom.loginUsernameInput.value.trim().toLowerCase();
         const password = this.dom.loginPasswordInput.value;
 
@@ -1008,9 +1018,23 @@ class GameController {
 
         const user = this.users.find(u => u.username === username && u.password === password);
         if (!user) {
-            this.dom.loginError.textContent = 'Tên đăng nhập hoặc mật khẩu không chính xác.';
+            // Track failed attempts and enforce 30s lockout after 5 failures
+            const attempts = parseInt(sessionStorage.getItem('tx_login_attempts') || '0', 10) + 1;
+            sessionStorage.setItem('tx_login_attempts', attempts);
+            if (attempts >= 5) {
+                sessionStorage.setItem('tx_lockout_until', now + 30000);
+                sessionStorage.removeItem('tx_login_attempts');
+                this.dom.loginError.textContent = 'Đã thử sai quá 5 lần. Tài khoản tạm khóa trong 30 giây.';
+            } else {
+                this.dom.loginError.textContent = `Tên đăng nhập hoặc mật khẩu không chính xác. (${attempts}/5)`;
+            }
+            audioSynth.playLoseSound();
             return;
         }
+
+        // Reset failed attempt counters upon successful login
+        sessionStorage.removeItem('tx_login_attempts');
+        sessionStorage.removeItem('tx_lockout_until');
 
         // Login success
         this.currentUser = user;
