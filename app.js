@@ -2387,15 +2387,17 @@ class GameController {
             return;
         }
 
-        if (account.length < 5) {
-            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ.';
+        // Security: Validate account number format and length to prevent storage abuse and malformed records
+        if (account.length < 5 || account.length > 30 || !/^[A-Za-z0-9-]+$/.test(account)) {
+            this.dom.withdrawStatus.textContent = 'Số tài khoản / Số điện thoại không hợp lệ (5-30 ký tự, chỉ gồm số, chữ và gạch ngang).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
         }
 
-        if (holder.length < 3) {
-            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ.';
+        // Security: Validate recipient holder name to avoid control characters or malformed records
+        if (holder.length < 3 || holder.length > 50 || !/^[A-Z\s]+$/.test(holder)) {
+            this.dom.withdrawStatus.textContent = 'Tên chủ tài khoản không hợp lệ (3-50 ký tự, chữ cái không dấu).';
             this.dom.withdrawStatus.className = 'card-deposit-status text-red';
             audioSynth.playLoseSound();
             return;
