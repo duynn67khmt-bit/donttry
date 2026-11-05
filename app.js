@@ -531,15 +531,14 @@ class GameController {
 
         if (this.dom.btnCloseDeposit) {
             this.dom.btnCloseDeposit.addEventListener('click', () => {
-                this.dom.depositModal.classList.add('hidden');
-                audioSynth.playChipSound();
+                this.closeDepositModal();
             });
         }
 
         if (this.dom.depositModal) {
             this.dom.depositModal.addEventListener('click', (e) => {
                 if (e.target === this.dom.depositModal) {
-                    this.dom.depositModal.classList.add('hidden');
+                    this.closeDepositModal();
                 }
             });
         }
@@ -638,18 +637,28 @@ class GameController {
 
         if (this.dom.btnCloseWithdraw) {
             this.dom.btnCloseWithdraw.addEventListener('click', () => {
-                this.dom.withdrawModal.classList.add('hidden');
-                audioSynth.playChipSound();
+                this.closeWithdrawModal();
             });
         }
 
         if (this.dom.withdrawModal) {
             this.dom.withdrawModal.addEventListener('click', (e) => {
                 if (e.target === this.dom.withdrawModal) {
-                    this.dom.withdrawModal.classList.add('hidden');
+                    this.closeWithdrawModal();
                 }
             });
         }
+
+        // Global Escape key dismisses open dialog modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.dom.depositModal && !this.dom.depositModal.classList.contains('hidden')) {
+                    this.closeDepositModal();
+                } else if (this.dom.withdrawModal && !this.dom.withdrawModal.classList.contains('hidden')) {
+                    this.closeWithdrawModal();
+                }
+            }
+        });
 
         if (this.dom.btnWithdrawSubmit) {
             this.dom.btnWithdrawSubmit.addEventListener('click', () => {
@@ -789,9 +798,21 @@ class GameController {
         // Render current user's deposit history
         this.renderDepositHistory();
 
-        // Show modal
+        // Show modal and manage focus
         this.dom.depositModal.classList.remove('hidden');
+        if (this.dom.btnCloseDeposit) {
+            this.dom.btnCloseDeposit.focus();
+        }
         audioSynth.playChipSound();
+    }
+
+    closeDepositModal() {
+        if (!this.dom.depositModal) return;
+        this.dom.depositModal.classList.add('hidden');
+        audioSynth.playChipSound();
+        if (this.dom.btnOpenDeposit) {
+            this.dom.btnOpenDeposit.focus();
+        }
     }
 
     executeDeposit(amount, method) {
@@ -2369,9 +2390,21 @@ class GameController {
         // Render withdrawal history
         this.renderWithdrawalHistory();
 
-        // Show modal
+        // Show modal and manage focus
         this.dom.withdrawModal.classList.remove('hidden');
+        if (this.dom.btnCloseWithdraw) {
+            this.dom.btnCloseWithdraw.focus();
+        }
         audioSynth.playChipSound();
+    }
+
+    closeWithdrawModal() {
+        if (!this.dom.withdrawModal) return;
+        this.dom.withdrawModal.classList.add('hidden');
+        audioSynth.playChipSound();
+        if (this.dom.btnOpenWithdraw) {
+            this.dom.btnOpenWithdraw.focus();
+        }
     }
 
     executeWithdrawalAction() {
