@@ -2353,11 +2353,8 @@ class GameController {
         if (this.currentUser.lastWithdrawBank) {
             this.dom.withdrawBank.value = this.currentUser.lastWithdrawBank;
         }
-        if (this.currentUser.lastWithdrawAccount) {
-            this.dom.withdrawCardNum.value = this.currentUser.lastWithdrawAccount;
-        } else {
-            this.dom.withdrawCardNum.value = '';
-        }
+        // Security: Keep account input unpopulated to protect sensitive account info from shoulder surfing
+        this.dom.withdrawCardNum.value = '';
         if (this.currentUser.lastWithdrawName) {
             this.dom.withdrawCardName.value = this.currentUser.lastWithdrawName;
         } else {
@@ -2444,7 +2441,9 @@ class GameController {
         // Persist withdrawal info for autofill next time
         const bankText = this.dom.withdrawBank.options[this.dom.withdrawBank.selectedIndex].text;
         this.currentUser.lastWithdrawBank = bank;
-        this.currentUser.lastWithdrawAccount = account;
+        // Security: Mask bank account/phone numbers before storing in localStorage to protect sensitive financial data
+        const maskedAccount = account.length > 4 ? `${'•'.repeat(account.length - 4)}${account.slice(-4)}` : account;
+        this.currentUser.lastWithdrawAccount = maskedAccount;
         this.currentUser.lastWithdrawName = holder;
 
         // Push transaction record
@@ -2454,7 +2453,7 @@ class GameController {
         this.currentUser.withdrawals = this.currentUser.withdrawals || [];
         this.currentUser.withdrawals.push({
             bank: bankText,
-            account: account,
+            account: maskedAccount,
             amount: amount,
             time: timeStr,
             status: 'Thành công'
