@@ -7,3 +7,8 @@
 **Vulnerability:** Plaintext credit card Primary Account Numbers (PANs) stored in browser `localStorage` and pre-filled into input fields.
 **Learning:** Storing full card numbers in client-side storage exposes sensitive payment card data to XSS attacks and shoulder surfing.
 **Prevention:** Always mask sensitive payment data (e.g. keeping only last 4 digits) before persisting in `localStorage` or displaying on UI card previews, and keep input fields unpopulated.
+
+## 2026-11-08 - Cryptographically Secure Pseudo-Random Number Generation for Casino Dice
+**Vulnerability:** Standard `Math.random()` pseudo-random number generator used in `rollDiceAlgorithm` to calculate dice faces in a betting game (CWE-338).
+**Learning:** `Math.random()` uses non-cryptographic PRNG algorithms whose state can be determined from observed outcomes, enabling attackers to predict game outcomes and exploit payouts.
+**Prevention:** Always use `window.crypto.getRandomValues()` with rejection sampling (to eliminate modulo bias) for security-sensitive or financial outcome random numbers.
