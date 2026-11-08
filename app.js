@@ -2329,12 +2329,16 @@ class GameController {
         }
     }
 
+    // Optimization: Cache Intl.NumberFormat instances to avoid expensive instantiation and GC churn on frequent UI updates (e.g. 350ms bot intervals, transaction logs, chips, balances)
+    static viCurrencyFormatter = new Intl.NumberFormat('vi-VN');
+    static enNumberFormatter = new Intl.NumberFormat('en-US');
+
     formatCurrency(val) {
-        return new Intl.NumberFormat('vi-VN').format(val);
+        return GameController.viCurrencyFormatter.format(val);
     }
 
     formatNumber(val) {
-        return new Intl.NumberFormat('en-US').format(val);
+        return GameController.enNumberFormatter.format(val);
     }
 
     // --------------------------------------------------------------------------
