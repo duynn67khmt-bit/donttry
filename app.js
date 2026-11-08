@@ -656,6 +656,24 @@ class GameController {
                 this.executeWithdrawalAction();
             });
         }
+
+        // Keyboard accessibility: Close modals with Escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                let modalClosed = false;
+                if (this.dom.depositModal && !this.dom.depositModal.classList.contains('hidden')) {
+                    this.dom.depositModal.classList.add('hidden');
+                    modalClosed = true;
+                }
+                if (this.dom.withdrawModal && !this.dom.withdrawModal.classList.contains('hidden')) {
+                    this.dom.withdrawModal.classList.add('hidden');
+                    modalClosed = true;
+                }
+                if (modalClosed) {
+                    audioSynth.playChipSound();
+                }
+            }
+        });
     }
 
     setupAudioTriggerOnFirstInteraction() {
