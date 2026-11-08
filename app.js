@@ -1461,6 +1461,20 @@ class GameController {
     // --------------------------------------------------------------------------
     // 6. CORE DICE ROLL ALGORITHM (THE ENGINE)
     // --------------------------------------------------------------------------
+    // Security: Use cryptographically secure pseudo-random number generator (CSPRNG)
+    // to prevent dice roll prediction attacks in betting outcomes (CWE-338).
+    getSecureRandomDice() {
+        const cryptoObj = window.crypto || window.msCrypto;
+        if (cryptoObj && cryptoObj.getRandomValues) {
+            const buffer = new Uint8Array(1);
+            do {
+                cryptoObj.getRandomValues(buffer);
+            } while (buffer[0] >= 252); // Rejection sampling: 252 is largest multiple of 6 <= 255 to eliminate modulo bias
+            return (buffer[0] % 6) + 1;
+        }
+        return Math.floor(Math.random() * 6) + 1;
+    }
+
     rollDiceAlgorithm() {
         const totalUserBet = this.userBets.xiu + this.userBets.tai + this.userBets.bao;
         
@@ -1495,19 +1509,19 @@ class GameController {
                 // Force WIN
                 if (primaryBet === 'bao') {
                     // Force a Triple (Any Triple)
-                    const val = Math.floor(Math.random() * 6) + 1;
+                    const val = this.getSecureRandomDice();
                     dice = [val, val, val];
                 } else if (primaryBet === 'tai') {
                     // Force Tài (sum 11-17, not triple)
                     do {
-                        dice = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
+                        dice = [this.getSecureRandomDice(), this.getSecureRandomDice(), this.getSecureRandomDice()];
                         sum = dice[0] + dice[1] + dice[2];
                         isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
                     } while (sum < 11 || isTriple);
                 } else {
                     // Force Xỉu (sum 4-10, not triple)
                     do {
-                        dice = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
+                        dice = [this.getSecureRandomDice(), this.getSecureRandomDice(), this.getSecureRandomDice()];
                         sum = dice[0] + dice[1] + dice[2];
                         isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
                     } while (sum > 10 || isTriple);
@@ -1516,22 +1530,22 @@ class GameController {
                 // Force LOSE
                 if (this.userBets.tai > 0 && this.userBets.xiu > 0) {
                     // Anti-hedging cheat: If they bet on both Tai & Xiu, force a Triple so they lose both!
-                    const val = Math.floor(Math.random() * 6) + 1;
+                    const val = this.getSecureRandomDice();
                     dice = [val, val, val];
                 } else if (primaryBet === 'bao') {
                     // Force non-triple
                     do {
-                        dice = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
+                        dice = [this.getSecureRandomDice(), this.getSecureRandomDice(), this.getSecureRandomDice()];
                         isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
                     } while (isTriple);
                 } else if (primaryBet === 'tai') {
                     // Force Xỉu (sum 4-10, no triple or occasionally a triple to bust them)
                     if (Math.random() < 0.1) {
-                        const val = Math.floor(Math.random() * 6) + 1;
+                        const val = this.getSecureRandomDice();
                         dice = [val, val, val];
                     } else {
                         do {
-                            dice = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
+                            dice = [this.getSecureRandomDice(), this.getSecureRandomDice(), this.getSecureRandomDice()];
                             sum = dice[0] + dice[1] + dice[2];
                             isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
                         } while (sum > 10 || isTriple);
@@ -1539,11 +1553,11 @@ class GameController {
                 } else {
                     // Force Tài (sum 11-17, no triple)
                     if (Math.random() < 0.1) {
-                        const val = Math.floor(Math.random() * 6) + 1;
+                        const val = this.getSecureRandomDice();
                         dice = [val, val, val];
                     } else {
                         do {
-                            dice = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
+                            dice = [this.getSecureRandomDice(), this.getSecureRandomDice(), this.getSecureRandomDice()];
                             sum = dice[0] + dice[1] + dice[2];
                             isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
                         } while (sum < 11 || isTriple);
@@ -1554,9 +1568,9 @@ class GameController {
             this.currentDice = dice;
         } else {
             // Fair Mode / No player bet
-            this.currentDice[0] = Math.floor(Math.random() * 6) + 1;
-            this.currentDice[1] = Math.floor(Math.random() * 6) + 1;
-            this.currentDice[2] = Math.floor(Math.random() * 6) + 1;
+            this.currentDice[0] = this.getSecureRandomDice();
+            this.currentDice[1] = this.getSecureRandomDice();
+            this.currentDice[2] = this.getSecureRandomDice();
         }
 
         console.log(`[Result Roll] Kết quả xúc xắc: ${this.currentDice.join(', ')} (Tổng: ${this.currentDice[0] + this.currentDice[1] + this.currentDice[2]} - ${this.isRiggedMode ? 'Chế độ BỊP' : 'Công bằng'})`);
