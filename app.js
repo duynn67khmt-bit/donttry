@@ -513,6 +513,14 @@ class GameController {
             this.dom.audioOverlay.classList.add('hidden');
         });
 
+        if (this.dom.audioOverlay) {
+            this.dom.audioOverlay.addEventListener('click', (e) => {
+                if (e.target === this.dom.audioOverlay) {
+                    this.dom.audioOverlay.classList.add('hidden');
+                }
+            });
+        }
+
         // Admin Rigged Toggles (Double-clicking the Casino logo toggles Rigged mode silently)
         if (this.dom.headerLogo) {
             this.dom.headerLogo.addEventListener('dblclick', () => {
@@ -656,6 +664,21 @@ class GameController {
                 this.executeWithdrawalAction();
             });
         }
+
+        // Global Escape key listener to close open modals
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.dom.depositModal && !this.dom.depositModal.classList.contains('hidden')) {
+                    this.dom.depositModal.classList.add('hidden');
+                }
+                if (this.dom.withdrawModal && !this.dom.withdrawModal.classList.contains('hidden')) {
+                    this.dom.withdrawModal.classList.add('hidden');
+                }
+                if (this.dom.audioOverlay && !this.dom.audioOverlay.classList.contains('hidden')) {
+                    this.dom.audioOverlay.classList.add('hidden');
+                }
+            }
+        });
     }
 
     setupAudioTriggerOnFirstInteraction() {
