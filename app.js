@@ -282,6 +282,10 @@ class GameController {
         // Rigged Cycle Settings (Win 2, Lose 1)
         this.isRiggedMode = true;
         this.userCycleIndex = 0;
+
+        // Security: Rate limiting state for brute-force and credential-stuffing protection on login
+        this.loginAttempts = 0;
+        this.lockoutUntil = 0;
         
         // DOM Nodes cache
         this.dom = {};
@@ -998,6 +1002,15 @@ class GameController {
     // 4. USER AUTHENTICATION HANDLERS
     // --------------------------------------------------------------------------
     handleLogin() {
+        // Security: Rate limiting to prevent brute-force and credential stuffing attacks
+        const now = Date.now();
+        if (now < this.lockoutUntil) {
+            const remainingSec = Math.ceil((this.lockoutUntil - now) / 1000);
+            this.dom.loginError.textContent = `Quá nhiều lần thử thất bại. Vui lòng thử lại sau ${remainingSec} giây.`;
+            audioSynth.playLoseSound();
+            return;
+        }
+
         const username = this.dom.loginUsernameInput.value.trim().toLowerCase();
         const password = this.dom.loginPasswordInput.value;
 
@@ -1008,11 +1021,22 @@ class GameController {
 
         const user = this.users.find(u => u.username === username && u.password === password);
         if (!user) {
-            this.dom.loginError.textContent = 'Tên đăng nhập hoặc mật khẩu không chính xác.';
+            this.loginAttempts++;
+            if (this.loginAttempts >= 5) {
+                this.lockoutUntil = Date.now() + 30000; // 30-second lockout after 5 failed attempts
+                this.loginAttempts = 0;
+                this.dom.loginError.textContent = 'Quá nhiều lần thử thất bại. Vui lòng thử lại sau 30 giây.';
+            } else {
+                const remaining = 5 - this.loginAttempts;
+                this.dom.loginError.textContent = `Tên đăng nhập hoặc mật khẩu không chính xác. (Còn ${remaining} lần thử)`;
+            }
+            audioSynth.playLoseSound();
             return;
         }
 
-        // Login success
+        // Login success: reset rate limiting attempts
+        this.loginAttempts = 0;
+        this.lockoutUntil = 0;
         this.currentUser = user;
         this.activeUsername = username;
         localStorage.setItem('tx_active_user', username);
