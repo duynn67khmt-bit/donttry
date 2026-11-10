@@ -471,10 +471,19 @@ class GameController {
             audioSynth.playChipSound();
         });
 
-        // Click Bet Areas
+        // Click & Keyboard Bet Areas
+        const handleBetKey = (e, areaType) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.placeUserBet(areaType);
+            }
+        };
         this.dom.betXiu.addEventListener('click', () => this.placeUserBet('xiu'));
+        this.dom.betXiu.addEventListener('keydown', (e) => handleBetKey(e, 'xiu'));
         this.dom.betTai.addEventListener('click', () => this.placeUserBet('tai'));
+        this.dom.betTai.addEventListener('keydown', (e) => handleBetKey(e, 'tai'));
         this.dom.betBao.addEventListener('click', () => this.placeUserBet('bao'));
+        this.dom.betBao.addEventListener('keydown', (e) => handleBetKey(e, 'bao'));
 
         // Bowl Drag (Kéo Bát) - Pointer events for free-drag reveal
         this.dom.diceCup.addEventListener('pointerdown', (e) => this.onBowlDragStart(e));
@@ -1426,14 +1435,19 @@ class GameController {
     }
 
     enableBettingControls(enable) {
-        const updateClass = (el, val) => {
-            if (val) el.classList.remove('disabled-area');
-            else el.classList.add('disabled-area');
+        const updateAreaState = (el, val) => {
+            if (val) {
+                el.classList.remove('disabled-area');
+                el.removeAttribute('aria-disabled');
+            } else {
+                el.classList.add('disabled-area');
+                el.setAttribute('aria-disabled', 'true');
+            }
         };
         
-        updateClass(this.dom.betXiu, enable);
-        updateClass(this.dom.betTai, enable);
-        updateClass(this.dom.betBao, enable);
+        updateAreaState(this.dom.betXiu, enable);
+        updateAreaState(this.dom.betTai, enable);
+        updateAreaState(this.dom.betBao, enable);
 
         this.dom.btnBetClear.disabled = !enable || (this.userBets.xiu === 0 && this.userBets.tai === 0 && this.userBets.bao === 0);
         this.dom.btnBetDouble.disabled = !enable || (this.userBets.xiu === 0 && this.userBets.tai === 0 && this.userBets.bao === 0);
