@@ -656,6 +656,25 @@ class GameController {
                 this.executeWithdrawalAction();
             });
         }
+
+        // Close open modals when Escape key is pressed and restore focus
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.dom.depositModal && !this.dom.depositModal.classList.contains('hidden')) {
+                    this.dom.depositModal.classList.add('hidden');
+                    audioSynth.playChipSound();
+                    if (this.dom.btnOpenDeposit) {
+                        this.dom.btnOpenDeposit.focus();
+                    }
+                } else if (this.dom.withdrawModal && !this.dom.withdrawModal.classList.contains('hidden')) {
+                    this.dom.withdrawModal.classList.add('hidden');
+                    audioSynth.playChipSound();
+                    if (this.dom.btnOpenWithdraw) {
+                        this.dom.btnOpenWithdraw.focus();
+                    }
+                }
+            }
+        });
     }
 
     setupAudioTriggerOnFirstInteraction() {
